@@ -129,7 +129,7 @@ function clearScanProgress(){
 }
 
 
-function showView(id){
+window.showView=function showView(id){
  const target=document.getElementById(id);
  if(!target)return;
  document.querySelectorAll(".view").forEach(v=>v.classList.toggle("active",v===target));
@@ -207,14 +207,28 @@ function bottleCard(x){return `<article class="bottle-card"><strong>${escapeHtml
 function renderInventory(){
  const q=inventorySearch.value.trim().toLowerCase(),filter=inventoryFilter.value;
  const filtered=inventory.filter(x=>(filter==="all"||x.status===filter)&&[x.name,x.brand,x.type,x.notes].join(" ").toLowerCase().includes(q));
- inventoryList.innerHTML=filtered.length?filtered.map(x=>`<div class="inventory-row"><div><h3>${escapeHtml(x.name)}</h3><p>${escapeHtml([x.brand,x.type].filter(Boolean).join(" · "))}</p><span class="status-pill ${statusClass(x.status)}">${statusLabel(x.status)}</span></div><div class="inventory-actions"><button onclick="cycleStatus('${x.id}')">${statusLabel(x.status)}</button><button onclick="editItem('${x.id}')">Edit</button></div></div>`).join(""):`<p class="helper">No inventory items match this view.</p>`;
+ inventoryList.innerHTML=filtered.length?filtered.map(x=>`
+  <article class="inventory-row">
+   <div class="inventory-item-copy">
+    <div class="inventory-title-line">
+     <h3>${escapeHtml(x.name)}</h3>
+     <span class="status-pill ${statusClass(x.status)}">${statusLabel(x.status)}</span>
+    </div>
+    <p>${escapeHtml([x.brand,x.type].filter(Boolean).join(" · "))}</p>
+   </div>
+   <button class="inventory-edit-button" type="button" onclick="editItem('${x.id}')" aria-label="Edit ${escapeHtml(x.name)}">Edit</button>
+  </article>`).join(""):`<p class="helper">No inventory items match this view.</p>`;
 }
 window.cycleStatus=id=>{const x=inventory.find(i=>i.id===id);x.status=x.status==="good"?"low":x.status==="low"?"replace":"good";save()};
 window.editItem=id=>openItemDialog(inventory.find(i=>i.id===id));
 function openItemDialog(item=null){itemDialogTitle.textContent=item?"Edit item":"Add item";itemId.value=item?.id||"";itemName.value=item?.name||"";itemBrand.value=item?.brand||"";itemType.value=item?.type||"Other";itemStatus.value=item?.status||"good";itemNotes.value=item?.notes||"";deleteItemBtn.classList.toggle("hidden",!item);itemDialog.showModal()}
 itemForm.addEventListener("submit",e=>{e.preventDefault();const id=itemId.value;const data={id:id||crypto.randomUUID(),name:itemName.value.trim(),brand:itemBrand.value.trim(),type:itemType.value,status:itemStatus.value,notes:itemNotes.value.trim()};if(!data.name)return;const ix=inventory.findIndex(x=>x.id===id);if(ix>=0)inventory[ix]=data;else inventory.push(data);itemDialog.close();save()});
 deleteItemBtn.onclick=()=>{const id=itemId.value;if(id&&confirm("Delete this inventory item?")){inventory=inventory.filter(x=>x.id!==id);itemDialog.close();save()}};
-addManualBtn.onclick=()=>openItemDialog();inventorySearch.oninput=renderInventory;inventoryFilter.onchange=renderInventory;
+addManualBtn.onclick=()=>openItemDialog();
+itemDialogClose.onclick=()=>itemDialog.close();
+itemDialog.addEventListener("click",event=>{if(event.target===itemDialog)itemDialog.close()});
+inventorySearch.oninput=renderInventory;
+inventoryFilter.onchange=renderInventory;
 
 function renderShopping(){
  const needs=inventory.filter(x=>x.status==="low"||x.status==="replace");
@@ -324,7 +338,12 @@ function renderBarIQ(){
  barIqLabel.textContent=iq.score>=80?"Highly capable":iq.score>=60?"Well rounded":iq.score>=40?"Developing":"Early-stage bar";
  barIqSummary.textContent=`You can make ${iq.available} of ${iq.total} curated cocktails. Bar IQ rewards capability, balance and bottle maintenance.`;
  programmeScores.innerHTML=iq.coverage.map(x=>`<div class="programme-row"><strong>${x.name}</strong><div class="bar-track"><div class="bar-fill" style="width:${x.score}%"></div></div><span>${x.score}</span></div>`).join("");
- const unlocks=calculateUnlocks().slice(0,8);unlockList.innerHTML=unlocks.length?unlocks.map(x=>`<div class="unlock-row"><strong>${titleCase(x.key)}</strong><small>Unlocks ${x.gain} additional cocktails</small></div>`).join(""):`<div class="unlock-row">No single missing ingredient unlocks an additional recipe.</div>`
+ const unlocks=calculateUnlocks().slice(0,8);
+ unlockList.innerHTML=unlocks.length?unlocks.map(x=>`
+  <button class="unlock-row unlock-tile" type="button" onclick="openUnlockAction('${escapeHtml(x.key)}',${x.gain})">
+   <span><strong>${titleCase(x.key)}</strong><small>Unlocks ${x.gain} additional cocktails</small></span>
+   <span class="unlock-chevron">›</span>
+  </button>`).join(""):`<div class="unlock-row">No single missing ingredient unlocks an additional recipe.</div>`
  renderInventoryAnalysis();
 }
 
@@ -726,9 +745,68 @@ window.openHistoryDetail=date=>{
  historyDetailDialog.showModal()
 };
 
+
+let activeUnlockIngredient=null;
+
+window.openUnlockAction=(key,gain)=>{
+ activeUnlockIngredient={key,gain};
+ unlockActionTitle.textContent=titleCase(key);
+ unlockActionReason.textContent=`Adding this ingredient would unlock ${gain} additional curated cocktail${gain===1?"":"s"}.`;
+ unlockActionDialog.showModal();
+};
+
+unlockActionClose.onclick=()=>unlockActionDialog.close();
+unlockActionDialog.addEventListener("click",event=>{if(event.target===unlockActionDialog)unlockActionDialog.close()});
+
+unlockAlreadyHaveBtn.onclick=()=>{
+ if(!activeUnlockIngredient)return;
+ const name=titleCase(activeUnlockIngredient.key);
+ const existing=inventory.some(item=>[item.name,item.brand,item.type].join(" ").toLowerCase().includes(activeUnlockIngredient.key.toLowerCase()));
+ if(!existing){
+  inventory.push({
+   id:crypto.randomUUID(),
+   name,
+   brand:"",
+   type:guessInventoryType(activeUnlockIngredient.key),
+   status:"good",
+   notes:"Added from Bar IQ"
+  });
+ }
+ unlockActionDialog.close();
+ showToast(existing?`${name} is already in My Bar.`:`${name} added to My Bar.`);
+ save();
+};
+
+unlockShoppingBtn.onclick=()=>{
+ if(!activeUnlockIngredient)return;
+ const name=titleCase(activeUnlockIngredient.key);
+ if(!wishlist.some(item=>item.name.toLowerCase()===name.toLowerCase())){
+  wishlist.push({name,reason:`High-value addition · unlocks ${activeUnlockIngredient.gain} cocktails`});
+ }
+ unlockActionDialog.close();
+ showToast(`${name} added to the shopping list.`);
+ save();
+};
+
+function guessInventoryType(key){
+ const value=key.toLowerCase();
+ if(value.includes("gin"))return "Gin";
+ if(value.includes("tequila")||value.includes("mezcal"))return "Tequila";
+ if(value.includes("rum")||value.includes("rhum"))return "Rum";
+ if(value.includes("scotch"))return "Scotch";
+ if(value.includes("irish whiskey"))return "Irish whiskey";
+ if(value.includes("whisky")||value.includes("rye"))return "Canadian whisky";
+ if(value.includes("brandy")||value.includes("cognac"))return "Brandy/Cognac";
+ if(value.includes("vermouth")||value.includes("sherry"))return "Vermouth/Fortified wine";
+ if(value.includes("bitters"))return "Bitters";
+ if(value.includes("campari")||value.includes("aperol")||value.includes("amaro")||value.includes("fernet")||value.includes("cynar"))return "Amaro/Aperitivo";
+ if(value.includes("soda")||value.includes("tonic")||value.includes("juice")||value.includes("beer")||value.includes("cola"))return "Mixer";
+ return "Liqueur";
+}
+
 function renderAll(){renderDashboard();renderInventory();renderShopping();renderBarIQ();renderRecommendationControls();renderTaste();renderStaplesMenu()}
 
-const APP_VERSION="3.0.0-dev";
+const APP_VERSION="3.0.1-dev";
 const APP_STORAGE_KEYS=[
  STORAGE_KEY,WISHLIST_KEY,TASTE_KEY,HISTORY_KEY,FAV_KEY,MANUAL_PREF_KEY,FEEDBACK_KEY,
  "ttt_phase2_mood","ttt_phase2_occasion","ttt_phase2_strength",STAPLES_KEY,"ttt_theme"

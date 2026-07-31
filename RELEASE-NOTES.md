@@ -1,28 +1,22 @@
 # Turn the Tide Release Notes
 
-## 3.0.0-dev — Home Bar Companion foundation
+## 3.0.1-dev
 
-This release starts the Version 3 product direction.
+### Bar IQ and shopping
+- High-value additions are now interactive.
+- Tap an addition to mark it as already owned or add it to the shopping list.
+- “Already have it” creates an editable inventory record and recalculates availability immediately.
+- “Add to shopping list” adds the bottle to the existing Purchase List & Wishlist screen.
+- Added Bar & Shopping shortcuts inside the hamburger menu.
 
-### Honest capability counts
-- Home now distinguishes bottles, cocktails ready now, cocktails one ingredient away and Bar Score.
-- The app no longer presents a potentially confusing “x of 140” statement as the only measure of capability.
-- The curated library remains 140 recipes. Counts cannot exceed that library unless the library itself expands.
+### Inventory
+- Removed the redundant status-cycle button from each inventory row.
+- Retained a compact status badge and one clear Edit action.
+- Improved name, type, brand and status spacing.
+- Reduced heavy font weights across headings, controls and cards.
 
-### Bar settings
-- Added configurable kitchen staples such as lemon, lime, simple syrup, soda and salt.
-- Staples are included in recipe availability only when enabled.
-- This resolves the common problem where a bottle scan understates cocktail capability because it does not scan the refrigerator or pantry.
-
-### Inventory intelligence
-- Added an inventory composition wheel by spirit family.
-- Added a cocktail spectrum showing the styles available from the current bar.
-- Retained programme coverage and high-value bottle unlock analysis.
-
-### Personalization
-- Added Modern, Atlantic, Cellar and Midnight colour themes.
-- Added structured hamburger submenus for Appearance, Bar Settings, Information and App & Data.
-- Introduced Avenir Next and system sans-serif typography for a cleaner app-like hierarchy.
-
-### Experience
-- Replaced the decorative hero card with a simpler welcome, one focused action card and clearer capability metrics.
+### Reliability and navigation
+- Fixed the Inventory Add Item dialog close control.
+- Added backdrop dismissal for the inventory and high-value-addition dialogs.
+- Confirmed Scan remains available as the centre Scan item in bottom navigation.
+- Added Scan a Shelf to the hamburger menu for easier discovery.

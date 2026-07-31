@@ -31,7 +31,21 @@
       if (event.key === "Escape" && panel.classList.contains("open")) closeMenu();
     });
 
-    panel.querySelectorAll("[data-menu-section]").forEach(item => {
+
+    panel.querySelectorAll("[data-menu-go]").forEach(item => {
+      item.addEventListener("click", () => {
+        const viewId = item.dataset.menuGo;
+        closeMenu();
+        if (typeof window.showView === "function") {
+          window.showView(viewId);
+        } else {
+          document.querySelectorAll(".view").forEach(view => view.classList.toggle("active", view.id === viewId));
+          window.scrollTo({top:0, behavior:"smooth"});
+        }
+      });
+    });
+
+        panel.querySelectorAll("[data-menu-section]").forEach(item => {
       item.addEventListener("click", () => {
         closeMenu();
         const target = document.getElementById(item.dataset.menuSection);

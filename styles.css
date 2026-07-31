@@ -1233,3 +1233,73 @@ input,select,textarea{background:var(--theme-surface)!important;color:var(--them
  .inventory-wheel:after{inset:23px}
  .spectrum-row{grid-template-columns:82px 1fr 24px;gap:7px}
 }
+
+
+/* ================================================================
+   3.0.1 — Bar IQ actions, inventory cleanup and lighter typography
+   ================================================================ */
+body{
+ font-weight:400!important
+}
+.home-welcome h2{font-weight:650!important}
+.home-action-card h2{font-weight:650!important}
+.card h2,.section-heading h2,.page-intro h2,.brand h1{font-weight:650!important}
+.metric strong{font-weight:650!important}
+.inventory-row h3{font-weight:620!important}
+button{font-weight:600!important}
+.eyebrow{font-weight:700!important}
+strong{font-weight:650}
+
+.inventory-row{
+ display:grid!important;
+ grid-template-columns:minmax(0,1fr) auto!important;
+ gap:14px!important;
+ align-items:center!important;
+ padding:15px 3px!important;
+ border-bottom:1px solid var(--theme-line)!important
+}
+.inventory-row:last-child{border-bottom:0!important}
+.inventory-item-copy{min-width:0}
+.inventory-title-line{
+ display:flex;align-items:center;gap:8px;min-width:0
+}
+.inventory-title-line h3{
+ margin:0;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+ font-size:.97rem!important;letter-spacing:-.015em
+}
+.inventory-title-line .status-pill{flex:0 0 auto}
+.inventory-item-copy p{
+ margin:.28rem 0 0!important;font-size:.77rem!important;color:var(--theme-muted)!important
+}
+.inventory-actions{display:none!important}
+.inventory-edit-button{
+ min-width:54px;min-height:40px;border:1px solid var(--theme-line);border-radius:12px;
+ background:var(--theme-bg);color:var(--theme-text);padding:0 12px
+}
+
+.unlock-list{display:grid;gap:8px}
+.unlock-tile{
+ width:100%;display:flex!important;align-items:center;justify-content:space-between;
+ gap:12px;text-align:left;border:1px solid var(--theme-line)!important;
+ border-radius:16px!important;background:var(--theme-surface)!important;
+ color:var(--theme-text)!important;padding:14px 15px!important;
+ box-shadow:0 4px 14px rgba(31,37,44,.04)
+}
+.unlock-tile span:first-child{display:grid;gap:3px}
+.unlock-tile strong{font-size:.9rem}
+.unlock-tile small{color:var(--theme-muted);font-size:.72rem}
+.unlock-chevron{font-size:1.5rem;color:var(--theme-muted);font-weight:400}
+
+.unlock-action-card{max-width:410px}
+.unlock-action-buttons{display:grid;gap:9px;margin-top:18px}
+.unlock-action-buttons button{width:100%}
+
+.dialog-close{
+ cursor:pointer;z-index:4
+}
+
+@media(max-width:480px){
+ .inventory-row{padding:14px 1px!important}
+ .inventory-title-line{align-items:flex-start;flex-direction:column;gap:5px}
+ .inventory-title-line h3{white-space:normal}
+}
