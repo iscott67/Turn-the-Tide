@@ -1431,3 +1431,45 @@ strong{font-weight:620!important}
   grid-template-columns:1fr;
  }
 }
+
+
+/* ================================================================
+   3.1.1 — Primary navigation viewport correction
+   Older layout rules centred the bar with left:50% and a transform.
+   Later rules also applied left and right offsets, which shifted most
+   of the navigation outside the viewport. This final rule resets the
+   positioning model explicitly.
+   ================================================================ */
+.bottom-nav{
+  position:fixed!important;
+  left:max(8px,env(safe-area-inset-left))!important;
+  right:max(8px,env(safe-area-inset-right))!important;
+  bottom:calc(8px + env(safe-area-inset-bottom))!important;
+  width:auto!important;
+  max-width:704px!important;
+  margin:0 auto!important;
+  transform:none!important;
+  box-sizing:border-box!important;
+  grid-template-columns:repeat(5,minmax(0,1fr))!important;
+  gap:2px!important;
+  padding:5px!important;
+  overflow:visible!important;
+}
+.bottom-nav button{
+  width:100%!important;
+  min-width:0!important;
+  padding:6px 2px!important;
+  overflow:visible!important;
+}
+.bottom-nav small{
+  overflow:visible!important;
+  text-overflow:clip!important;
+}
+@media(min-width:721px){
+  .bottom-nav{
+    left:50%!important;
+    right:auto!important;
+    width:calc(100% - 24px)!important;
+    transform:translateX(-50%)!important;
+  }
+}

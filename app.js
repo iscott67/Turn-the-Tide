@@ -840,7 +840,7 @@ function guessInventoryType(key){
 
 function renderAll(){renderDashboard();renderInventory();renderShopping();renderBarIQ();renderRecommendationControls();renderTaste();renderStaplesMenu()}
 
-const APP_VERSION="3.1.0-dev";
+const APP_VERSION="3.1.1-dev";
 const APP_STORAGE_KEYS=[
  STORAGE_KEY,WISHLIST_KEY,TASTE_KEY,HISTORY_KEY,FAV_KEY,MANUAL_PREF_KEY,FEEDBACK_KEY,
  "ttt_phase2_mood","ttt_phase2_occasion","ttt_phase2_strength",STAPLES_KEY,"ttt_theme"
