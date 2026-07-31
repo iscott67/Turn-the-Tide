@@ -8,7 +8,7 @@
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icons/favicon.png">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
-  <link rel="stylesheet" href="styles.css?v=2.0.1-dev">
+  <link rel="stylesheet" href="styles.css?v=2.0.1-dev-r2">
   <title>Turn the Tide | Atlantic Edition</title>
 </head>
 <body>
@@ -30,15 +30,19 @@
       <section id="dashboardView" class="view active">
         <section class="hero-card">
           <div class="hero-copy">
-            <span class="eyebrow light">Your evening, considered</span>
-            <h2>Find the right drink.</h2>
-            <p id="dashboardSummary">Chosen from your bar, your taste and the moment.</p>
-            <div class="hero-actions"><button class="primary hero-button" data-go="recommendView">Choose tonight’s drink</button></div>
+            <span class="eyebrow">Tonight</span>
+            <h2>What are you in the mood for?</h2>
+            <p id="dashboardSummary">A recommendation shaped by your bar, your taste and the moment.</p>
+            <div class="hero-actions">
+              <button class="primary hero-button" data-go="recommendView">Choose a drink</button>
+            </div>
           </div>
           <div class="hero-art" aria-hidden="true">
-            <span class="hero-moon"></span>
-            <span class="hero-glass"><i></i></span>
-            <span class="hero-reflection"></span>
+            <span class="hero-orb"></span>
+            <span class="hero-cocktail">
+              <i class="hero-liquid"></i>
+              <i class="hero-garnish"></i>
+            </span>
           </div>
         </section>
 
@@ -326,8 +330,8 @@
           <div><span class="eyebrow light">Turn the Tide</span><h2>About & support</h2></div>
         </section>
 
-        <section id="aboutSection" class="card about-hero-card menu-target">
-          <span class="eyebrow light">About Turn the Tide</span>
+        <section id="aboutSection" class="card about-card menu-target">
+          <span class="eyebrow">About Turn the Tide</span>
           <h2>The right drink for the moment.</h2>
           <p>Turn the Tide is a personal AI bartender for the home enthusiast. It helps you understand what your bar can make, choose a cocktail for the occasion and gradually learn your taste.</p>
           <p>Rather than functioning as a conventional recipe search engine, it combines inventory, context and preference to make a small number of useful recommendations.</p>
@@ -525,7 +529,7 @@
     </form>
   </dialog>
 
-  <script src="menu-controller.js?v=2.0.1-dev"></script>
-  <script src="app.js?v=2.0.1-dev"></script>
+  <script src="menu-controller.js?v=2.0.1-dev-r2"></script>
+  <script src="app.js?v=2.0.1-dev-r2"></script>
 </body>
 </html>
