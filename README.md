@@ -1,66 +1,40 @@
-# Turn the Tide
+# Turn the Tide — Atlantic Edition
 
-Turn the Tide is a mobile-first personal AI bartender for the home enthusiast.
+**Current development version: 2.0.0-dev**
 
-## Current version
+Turn the Tide is a mobile-first personal AI bartender that combines inventory, context and learned taste to recommend the right drink for the moment.
 
-**1.0.1-dev**
+## Atlantic Edition
 
-This is the active development build. It includes:
+Version 2 introduces a cohesive premium interface built around:
 
-- mobile-first inventory management;
-- AI-assisted multi-photo bottle recognition;
-- Tonight recommendations based on mood, occasion and strength;
-- Taste learning, ratings and House Favourites;
-- Bar IQ and purchase guidance;
-- 140 enriched cocktail recipes;
-- an installable Progressive Web App;
-- a minimalist hamburger menu for secondary information and controls.
+- calm hierarchy and generous spacing;
+- a restrained Atlantic palette;
+- translucent, tactile surfaces;
+- editorial typography;
+- system dark mode;
+- a shelf-by-shelf AI scanning workflow.
 
-## Repository structure
+## Netlify configuration
 
-```text
-index.html
-app.js
-styles.css
-manifest.webmanifest
-sw.js
-netlify.toml
-assets/
-data/
-icons/
-netlify/
-  functions/
-    analyze-bar.mjs
-```
-
-## Netlify deployment
-
-Connect this repository to Netlify using the `main` branch.
+Connect the repository's `main` branch to Netlify.
 
 - Build command: leave blank
 - Publish directory: `.`
 - Functions directory: `netlify/functions`
 
-Add this Netlify environment variable:
+Required environment variable:
 
 ```text
 OPENAI_API_KEY
 ```
 
-Do not put the API key in the repository.
+Do not store the API key in GitHub.
 
-After deployment, confirm that `analyze-bar` appears under **Logs & metrics → Functions** in Netlify.
+## Deploying an update with GitHub Desktop
 
-## Updating the live site
-
-1. Replace changed files in the local repository folder.
-2. Review the changes in GitHub Desktop.
-3. Commit to `main`.
-4. Push to GitHub.
-5. Netlify will deploy automatically.
-
-
-## 1.0.1-dev focus
-
-This release is a polish build. It improves scanner feedback, button states, navigation feedback, mobile spacing and accessibility without adding new primary functions.
+1. Copy the contents of this package into the local repository folder.
+2. In GitHub Desktop, review the changed files.
+3. Commit with: `Deploy Turn the Tide 2.0.0-dev`
+4. Push origin.
+5. Netlify deploys automatically.

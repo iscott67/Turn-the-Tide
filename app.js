@@ -414,42 +414,102 @@ function renderTaste(){
  tasteNextReason.textContent=next?`This gives the app useful new information about your response to ${next.tags.slice(0,2).map(titleCase).join(" and ")} flavours.`:"Add new ingredients or expand the recipe library to continue learning.";
 }
 
-barPhotos.onchange=async e=>{for(const file of [...e.target.files]){if(photos.length>=8)break;photos.push({file,url:URL.createObjectURL(file)})}e.target.value="";renderPhotos()};
-function renderPhotos(){photoCountLabel.textContent=photos.length?`${photos.length} photo${photos.length===1?"":"s"} ready`:"No photos added";analysePhotos.disabled=photos.length===0;photoStrip.innerHTML=photos.map((p,i)=>`<div class="photo-thumb"><img src="${p.url}" alt="Bar photo ${i+1}"><button onclick="removePhoto(${i})">×</button></div>`).join("")}
-window.removePhoto=i=>{URL.revokeObjectURL(photos[i].url);photos.splice(i,1);renderPhotos()};
-clearPhotos.onclick=()=>{photos.forEach(p=>URL.revokeObjectURL(p.url));photos=[];renderPhotos();scanResultsCard.classList.add("hidden")};
+const MAX_SCAN_PHOTOS=3;
+let activeScanController=null;
+
+barPhotos.onchange=async e=>{
+ const incoming=[...e.target.files];
+ const available=MAX_SCAN_PHOTOS-photos.length;
+ if(available<=0){
+  showToast("This shelf is ready. Analyse it before adding more.");
+  e.target.value="";
+  return;
+ }
+ incoming.slice(0,available).forEach(file=>{
+  photos.push({file,url:URL.createObjectURL(file)});
+ });
+ if(incoming.length>available)showToast("Use up to three photos for each shelf.");
+ e.target.value="";
+ renderPhotos();
+};
+
+function renderPhotos(){
+ const count=photos.length;
+ photoCountLabel.textContent=count===0
+  ?"Add up to three photos"
+  :`${count} of ${MAX_SCAN_PHOTOS} photo${count===1?"":"s"} ready`;
+ analysePhotos.disabled=count===0;
+ analysePhotos.textContent=count===0
+  ?"Analyse photos"
+  :`Analyse ${count} photo${count===1?"":"s"}`;
+ clearPhotos.classList.toggle("hidden",count===0);
+ photoStrip.innerHTML=photos.map((p,i)=>`
+  <div class="photo-thumb">
+   <img src="${p.url}" alt="Shelf photo ${i+1}">
+   <span class="photo-number">${i+1}</span>
+   <button type="button" onclick="removePhoto(${i})" aria-label="Remove photo ${i+1}">×</button>
+  </div>`).join("");
+}
+
+window.removePhoto=i=>{
+ if(activeScanController)return;
+ URL.revokeObjectURL(photos[i].url);
+ photos.splice(i,1);
+ renderPhotos();
+};
+
+clearPhotos.onclick=()=>{
+ if(activeScanController)return;
+ photos.forEach(p=>URL.revokeObjectURL(p.url));
+ photos=[];
+ candidates=[];
+ renderPhotos();
+ clearScanProgress();
+ scanStatus.textContent="";
+ scanResultsCard.classList.add("hidden");
+};
 analysePhotos.onclick=async()=>{
- const originalLabel=analysePhotos.textContent;
+ const controller=new AbortController();
+ activeScanController=controller;
+ const timeoutId=setTimeout(()=>controller.abort("timeout"),45000);
+
  analysePhotos.disabled=true;
  clearPhotos.disabled=true;
+ barPhotos.disabled=true;
  analysePhotos.classList.add("is-loading");
  analysePhotos.setAttribute("aria-busy","true");
+ cancelScanBtn.classList.remove("hidden");
  scanResultsCard.classList.add("hidden");
- setScanProgress(5,`Preparing ${photos.length} photograph${photos.length===1?"":"s"}…`);
+ setScanProgress(5,`Preparing ${photos.length} photo${photos.length===1?"":"s"}…`);
+
  try{
   const images=[];
   for(let i=0;i<photos.length;i++){
-   const progress=10+Math.round(((i+1)/photos.length)*40);
-   setScanProgress(progress,`Preparing photo ${i+1} of ${photos.length}…`);
-   images.push(await resizeImageForScan(photos[i].file));
+   if(controller.signal.aborted)throw new DOMException("Cancelled","AbortError");
+   setScanProgress(12+Math.round(((i+1)/photos.length)*36),`Preparing photo ${i+1} of ${photos.length}…`);
+   images.push(await resizeImageForScan(photos[i].file,1024,.68));
   }
-  setScanProgress(58,`Sending ${photos.length} photograph${photos.length===1?"":"s"} securely…`);
+
+  setScanProgress(54,"Uploading securely…");
   const res=await fetch("/.netlify/functions/analyze-bar",{
    method:"POST",
    headers:{"content-type":"application/json"},
-   body:JSON.stringify({images})
+   body:JSON.stringify({images}),
+   signal:controller.signal
   });
-  setScanProgress(82,"Identifying bottles and merging duplicates…");
+
+  setScanProgress(82,"Identifying bottles…");
   const raw=await res.text();
   if(!res.ok){
    let detail=raw;
    try{const parsed=JSON.parse(raw);detail=parsed.error||parsed.message||raw}catch{}
    if(res.status===404)throw new Error("The AI scanning function is not deployed.");
-   if(res.status===503)throw new Error("The OpenAI API key is not available to the scanner.");
+   if(res.status===503)throw new Error("The OpenAI API key is unavailable.");
    if(res.status===401)throw new Error("OpenAI rejected the API key.");
-   if(res.status===413)throw new Error("The photo upload is too large.");
+   if(res.status===413)throw new Error("These photos are still too large. Try fewer images.");
    throw new Error(`Scan failed (${res.status}): ${detail}`);
   }
+
   const data=JSON.parse(raw);
   candidates=(data.items||[]).map(x=>({
    name:x.name||"",
@@ -458,28 +518,46 @@ analysePhotos.onclick=async()=>{
    status:x.status==="low"?"low":"good",
    confidence:x.confidence??.5
   }));
-  if(!candidates.length)throw new Error("No bottles could be identified. Try closer, brighter photographs with labels facing the camera.");
-  setScanProgress(100,`Found ${candidates.length} candidate item${candidates.length===1?"":"s"}.`);
+
+  if(!candidates.length){
+   throw new Error("No bottles were identified. Try brighter, closer photos with labels facing the camera.");
+  }
+
+  setScanProgress(100,`Found ${candidates.length} bottle${candidates.length===1?"":"s"}.`);
   renderCandidates();
   scanResultsCard.classList.remove("hidden");
   scanResultsCard.scrollIntoView({behavior:"smooth",block:"start"});
-  showToast("Scan complete. Confirm each item before saving.");
+  showToast("Shelf analysed. Confirm the bottles below.");
  }catch(err){
   console.error(err);
   candidates=[];
-  scanStatus.textContent=err?.message||"The scan could not be completed.";
-  showToast("The scan could not be completed.");
+  if(err?.name==="AbortError"){
+   scanStatus.textContent=controller.signal.reason==="timeout"
+    ?"The scan took too long and was stopped. Try one or two photos."
+    :"Scan cancelled.";
+  }else{
+   scanStatus.textContent=err?.message||"The scan could not be completed.";
+  }
+  showToast(scanStatus.textContent);
  }finally{
+  clearTimeout(timeoutId);
+  activeScanController=null;
   analysePhotos.disabled=photos.length===0;
   clearPhotos.disabled=false;
+  barPhotos.disabled=false;
   analysePhotos.classList.remove("is-loading");
   analysePhotos.removeAttribute("aria-busy");
-  analysePhotos.textContent=originalLabel;
+  cancelScanBtn.classList.add("hidden");
+  renderPhotos();
   setTimeout(clearScanProgress,900);
  }
 };
 
-function resizeImageForScan(file,maxDimension=1600,quality=.78){
+cancelScanBtn.onclick=()=>{
+ if(activeScanController)activeScanController.abort("cancelled");
+};
+
+function resizeImageForScan(file,maxDimension=1024,quality=.68){
  return new Promise((resolve,reject)=>{
   const image=new Image();
   const url=URL.createObjectURL(file);
@@ -506,7 +584,14 @@ function mapType(t=""){const v=t.toLowerCase();if(v.includes("gin"))return"Gin";
 function renderCandidates(){scanResultCount.textContent=candidates.length;scanCandidates.innerHTML=candidates.map((x,i)=>`<div class="candidate-row"><input value="${escapeHtml(x.name)}" oninput="updateCandidate(${i},'name',this.value)" placeholder="Product"><input value="${escapeHtml(x.brand)}" oninput="updateCandidate(${i},'brand',this.value)" placeholder="Brand"><select onchange="updateCandidate(${i},'type',this.value)">${["Gin","Tequila","Rum","Canadian whisky","Scotch","Irish whiskey","Brandy/Cognac","Vodka","Liqueur","Amaro/Aperitivo","Vermouth/Fortified wine","Bitters","Mixer","Fresh ingredient","Other"].map(t=>`<option ${t===x.type?"selected":""}>${t}</option>`).join("")}</select><button class="text-btn" onclick="removeCandidate(${i})">Remove</button></div>`).join("")}
 window.updateCandidate=(i,k,v)=>candidates[i][k]=v;window.removeCandidate=i=>{candidates.splice(i,1);renderCandidates()};
 addCandidateRow.onclick=()=>{candidates.push({name:"",brand:"",type:"Other",status:"good",confidence:1});renderCandidates()};
-saveScanResults.onclick=()=>{const existing=inventory.map(x=>`${x.brand} ${x.name}`.toLowerCase());candidates.filter(x=>x.name.trim()).forEach(x=>{const key=`${x.brand} ${x.name}`.toLowerCase();if(!existing.some(e=>similar(e,key)))inventory.push({id:crypto.randomUUID(),name:x.name.trim(),brand:x.brand.trim(),type:x.type,status:x.status,notes:`AI scan confidence: ${Math.round((x.confidence||0)*100)}%`})});save();showView("inventoryView");scanResultsCard.classList.add("hidden")};
+saveScanResults.onclick=()=>{const existing=inventory.map(x=>`${x.brand} ${x.name}`.toLowerCase());candidates.filter(x=>x.name.trim()).forEach(x=>{const key=`${x.brand} ${x.name}`.toLowerCase();if(!existing.some(e=>similar(e,key)))inventory.push({id:crypto.randomUUID(),name:x.name.trim(),brand:x.brand.trim(),type:x.type,status:x.status,notes:`AI scan confidence: ${Math.round((x.confidence||0)*100)}%`})});save();showView("inventoryView");scanResultsCard.classList.add("hidden");
+ photos.forEach(p=>URL.revokeObjectURL(p.url));
+ photos=[];
+ candidates=[];
+ renderPhotos();
+ scanStatus.textContent="Shelf added. Scan another shelf whenever you’re ready.";
+ showToast("Shelf added to My Bar.");
+};
 function similar(a,b){const clean=s=>new Set(s.replace(/[^a-z0-9 ]/g,"").split(/\s+/).filter(w=>w.length>2));const A=clean(a),B=clean(b);const overlap=[...A].filter(x=>B.has(x)).length;return overlap>=Math.min(2,A.size,B.size)}
 
 historyFilter.addEventListener("change",renderTaste);
@@ -528,7 +613,7 @@ window.openHistoryDetail=date=>{
 
 function renderAll(){renderDashboard();renderInventory();renderShopping();renderBarIQ();renderRecommendationControls();renderTaste()}
 
-const APP_VERSION="1.0.1-dev";
+const APP_VERSION="2.0.0-dev";
 const APP_STORAGE_KEYS=[
  STORAGE_KEY,WISHLIST_KEY,TASTE_KEY,HISTORY_KEY,FAV_KEY,MANUAL_PREF_KEY,FEEDBACK_KEY,
  "ttt_phase2_mood","ttt_phase2_occasion","ttt_phase2_strength"

@@ -1,11 +1,11 @@
 {
-  "name": "Turn the Tide | My Bar",
+  "name": "Turn the Tide \u2014 Atlantic Edition",
   "short_name": "Turn the Tide",
   "description": "AI-assisted home bar inventory, purchase planning and Bar IQ.",
   "start_url": "./",
   "display": "standalone",
-  "background_color": "#0E2B2B",
-  "theme_color": "#0E4B52",
+  "background_color": "#F4F1E9",
+  "theme_color": "#F4F1E9",
   "orientation": "portrait-primary",
   "icons": [
     {

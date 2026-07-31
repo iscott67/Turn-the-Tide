@@ -3,13 +3,13 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#0E4B52">
+  <meta name="theme-color" content="#F4F1E9">
   <meta name="description" content="Turn the Tide personal bar manager">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icons/favicon.png">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
-  <link rel="stylesheet" href="styles.css?v=1.0.1-dev">
-  <title>Turn the Tide | My Bar</title>
+  <link rel="stylesheet" href="styles.css?v=2.0.0-dev">
+  <title>Turn the Tide | Atlantic Edition</title>
 </head>
 <body>
   <div class="app-shell">
@@ -30,9 +30,9 @@
       <section id="dashboardView" class="view active">
         <section class="hero-card">
           <div>
-            <span class="eyebrow light">Your bar today</span>
-            <h2>A smarter cabinet, not a bigger one.</h2>
-            <p id="dashboardSummary">Scan your shelves, tell us what you enjoy and let Turn the Tide choose the right drink for the moment.</p>
+            <span class="eyebrow light">Good evening</span>
+            <h2>What would you like tonight?</h2>
+            <p id="dashboardSummary">A thoughtful recommendation, shaped by your bar and your taste.</p>
           </div>
           <div class="hero-actions"><button class="primary gold" data-go="recommendView">Choose tonight’s drink</button></div>
         </section>
@@ -71,36 +71,30 @@
       </section>
 
       <section id="scanView" class="view">
-        <section class="page-intro">
-          <button class="back-btn" data-go="dashboardView">←</button>
-          <div><span class="eyebrow light">AI multi-photo scan</span><h2>Photograph the whole bar</h2></div>
+        <section class="page-intro scan-intro">
+          <button class="back-btn" data-go="dashboardView" aria-label="Back to home">←</button>
+          <div><span class="eyebrow light">My Bar</span><h2>Scan a shelf</h2><p>Build your inventory one section at a time.</p></div>
         </section>
 
-        <section class="card scan-guide">
-          <h3>For the best result</h3>
-          <ol>
-            <li>Take three to eight overlapping photographs.</li>
-            <li>Move left to right, then photograph upper and lower shelves.</li>
-            <li>Keep labels as square to the camera as possible.</li>
-            <li>Confirm every result before adding it to inventory.</li>
-          </ol>
-          <div class="overlap-diagram" aria-label="Overlapping photo guide">
-            <span>1</span><span>2</span><span>3</span>
-          </div>
-        </section>
-
-        <section class="card">
+        <section class="card scan-workspace">
           <div class="section-heading">
-            <div><span class="eyebrow">Photo set</span><h2 id="photoCountLabel">No photos added</h2></div>
-            <button id="clearPhotos" class="text-btn">Clear</button>
+            <div><span class="eyebrow">Shelf 1</span><h2 id="photoCountLabel">Add up to three photos</h2></div>
+            <button id="clearPhotos" class="text-btn hidden" type="button">Clear</button>
           </div>
-          <label class="camera-button">
-            <span class="line-icon icon-camera"></span>
-            Add overlapping photos
+
+          <label class="camera-button premium-camera">
+            <span class="camera-orb"><span class="line-icon icon-camera"></span></span>
+            <span><strong>Add photos</strong><small>Use overlapping views of one shelf</small></span>
             <input id="barPhotos" type="file" accept="image/*" capture="environment" multiple>
           </label>
+
           <div id="photoStrip" class="photo-strip"></div>
-          <button id="analysePhotos" class="primary wide" disabled>Analyse photo set</button>
+
+          <div class="scan-actions">
+            <button id="analysePhotos" class="primary wide" disabled>Analyse photos</button>
+            <button id="cancelScanBtn" class="secondary wide hidden" type="button">Cancel</button>
+          </div>
+
           <div id="scanProgress" class="scan-progress hidden" aria-hidden="true">
             <span id="scanProgressBar"></span>
           </div>
@@ -109,19 +103,35 @@
 
         <section id="scanResultsCard" class="card hidden">
           <div class="section-heading">
-            <div><span class="eyebrow">Review results</span><h2>Confirm your inventory</h2></div>
+            <div><span class="eyebrow">Review</span><h2>Confirm detected bottles</h2></div>
             <span id="scanResultCount" class="count-badge">0</span>
           </div>
-          <p class="helper">AI recognition is probabilistic. Correct brands, product names, types and status before saving.</p>
+          <p class="helper">Check each bottle before adding it. Recognition is helpful, but not infallible.</p>
           <div id="scanCandidates"></div>
           <div class="button-row">
             <button id="addCandidateRow" class="secondary">Add missed item</button>
-            <button id="saveScanResults" class="primary">Add confirmed items</button>
+            <button id="saveScanResults" class="primary">Add to My Bar</button>
           </div>
         </section>
+
+        <details class="card scan-guide">
+          <summary>
+            <span><span class="eyebrow">Photo guidance</span><strong>For the best result</strong></span>
+            <span class="details-chevron">⌄</span>
+          </summary>
+          <ol>
+            <li>Photograph one shelf at a time.</li>
+            <li>Use one to three overlapping views, moving left to right.</li>
+            <li>Keep labels bright, unobstructed and facing the camera.</li>
+            <li>Complete this shelf, then begin another scan for the next section.</li>
+          </ol>
+          <div class="overlap-diagram" aria-label="Three overlapping photo guide">
+            <span>1</span><span>2</span><span>3</span>
+          </div>
+        </details>
       </section>
 
-      
+
       <section id="recommendView" class="view">
         <section class="page-intro">
           <button class="back-btn" data-go="dashboardView">←</button>
@@ -325,7 +335,7 @@
           </div>
           <div class="about-meta-grid">
             <div><small>Application</small><strong>Turn the Tide</strong></div>
-            <div><small>Version</small><strong>1.0.1-dev</strong></div>
+            <div><small>Version</small><strong>2.0.0-dev</strong></div>
             <div><small>Recipe library</small><strong>140 recipes</strong></div>
             <div><small>Recipe data</small><strong>2026.07</strong></div>
             <div><small>Platform</small><strong>Progressive Web App</strong></div>
@@ -335,7 +345,7 @@
 
         <section id="releaseNotesSection" class="card menu-target">
           <span class="eyebrow">Release notes</span>
-          <h2>Version 1.0.1-dev</h2>
+          <h2>Atlantic Edition 2.0.0-dev</h2>
           <ul class="about-list">
             <li>Completed the 140-recipe mobile library.</li>
             <li>Added exact imperial and metric quantities.</li>
@@ -424,7 +434,7 @@
     </nav>
 
     <div class="app-menu-footer">
-      <strong>Turn the Tide v1.0.1-dev</strong>
+      <strong>Turn the Tide 2.0.0-dev</strong>
       <small>Recipe data 2026.07</small>
     </div>
   </aside>
@@ -510,6 +520,6 @@
     </form>
   </dialog>
 
-  <script src="app.js?v=1.0.1-dev"></script>
+  <script src="app.js?v=2.0.0-dev"></script>
 </body>
 </html>

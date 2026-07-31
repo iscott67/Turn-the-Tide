@@ -1,4 +1,4 @@
-const CACHE="turn-the-tide-v1.0.1-dev1";
+const CACHE="turn-the-tide-v2.0.0-atlantic1";
 const ASSETS=["./","index.html","styles.css","app.js","manifest.webmanifest",
 "icons/icon-192.png","icons/icon-512.png","icons/maskable-512.png","icons/favicon.png",
 "assets/icons/home.svg","assets/icons/camera.svg","assets/icons/bottle.svg","assets/icons/cart.svg",
