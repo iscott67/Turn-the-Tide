@@ -455,3 +455,260 @@ input,select,textarea{
  .primary{background:#dce9e6!important;color:#0b3135!important}
  .secondary{background:rgba(255,255,255,.07)!important;color:#dce9e6!important}
 }
+
+
+/* ================================================================
+   2.0.1 — Thorough UI/UX refinement
+   Oyster, ink, sage and burnished brass
+   ================================================================ */
+:root{
+  --canvas:#f1efe9;
+  --paper:#fbfaf6;
+  --ink-strong:#161a1a;
+  --ink-soft:#5f6865;
+  --night:#172526;
+  --night-2:#243536;
+  --sage:#8e9d94;
+  --brass:#b7955b;
+  --line:rgba(22,26,26,.09);
+  --premium-shadow:0 16px 45px rgba(28,35,33,.08);
+}
+html{background:var(--canvas)}
+html.menu-open,html.menu-open body{overflow:hidden}
+body{
+  background:
+    radial-gradient(circle at 10% -5%,rgba(183,149,91,.08),transparent 26rem),
+    var(--canvas);
+  color:var(--ink-strong)
+}
+.app-shell{max-width:720px}
+main{padding-top:10px}
+.topbar{
+  background:rgba(241,239,233,.88);
+  border-bottom:1px solid rgba(22,26,26,.055)
+}
+.brand h1{
+  font-size:1rem!important;
+  font-weight:650!important;
+  letter-spacing:-.025em!important
+}
+.brand p{
+  font-size:.68rem!important;
+  letter-spacing:.015em;
+  color:#7d8582!important
+}
+.brand-icon{
+  width:35px!important;height:35px!important;border-radius:11px!important;
+  box-shadow:none!important
+}
+.menu-button{
+  width:42px!important;height:42px!important;border-radius:14px!important;
+  background:rgba(255,255,255,.56)!important;
+  border:1px solid rgba(22,26,26,.075)!important;
+  box-shadow:0 8px 22px rgba(22,26,26,.055)!important
+}
+.menu-button span{
+  width:18px!important;background:var(--ink-strong)!important
+}
+
+/* A smaller, more composed home hero */
+.hero-card{
+  position:relative!important;
+  min-height:228px!important;
+  display:grid!important;
+  grid-template-columns:minmax(0,1.45fr) minmax(118px,.65fr)!important;
+  align-items:center!important;
+  padding:28px 22px 24px 25px!important;
+  border-radius:28px!important;
+  background:
+    linear-gradient(128deg,var(--night) 0%,#213031 54%,#344342 100%)!important;
+  box-shadow:0 20px 58px rgba(23,37,38,.18)!important
+}
+.hero-copy{position:relative;z-index:2;align-self:center}
+.hero-card h2{
+  max-width:360px!important;
+  margin:.48rem 0 .68rem!important;
+  font-size:clamp(2rem,8vw,3.15rem)!important;
+  line-height:1.01!important;
+  letter-spacing:-.052em!important;
+  font-weight:590!important
+}
+.hero-card p{
+  max-width:320px!important;
+  margin:0!important;
+  font-size:.92rem!important;
+  line-height:1.48!important;
+  color:rgba(255,255,255,.66)!important
+}
+.hero-actions{margin-top:20px!important}
+.hero-button{
+  min-height:46px!important;
+  width:auto!important;
+  padding:0 18px!important;
+  background:#f5f2eb!important;
+  color:#182526!important;
+  box-shadow:0 9px 25px rgba(0,0,0,.13)!important;
+  font-size:.84rem!important
+}
+.hero-art{
+  position:relative;
+  height:178px;
+  align-self:center;
+  overflow:hidden
+}
+.hero-moon{
+  position:absolute;right:1px;top:3px;width:105px;height:105px;border-radius:50%;
+  background:radial-gradient(circle at 38% 35%,#d8c39d,#9f8155 72%);
+  box-shadow:0 0 38px rgba(183,149,91,.22)
+}
+.hero-glass{
+  position:absolute;right:31px;bottom:21px;width:66px;height:88px;
+  border:1.5px solid rgba(255,255,255,.82);
+  border-top:0;border-radius:4px 4px 27px 27px;
+  transform:skewX(-2deg);
+  backdrop-filter:blur(2px)
+}
+.hero-glass:before{
+  content:"";position:absolute;left:6px;right:6px;bottom:7px;height:48px;
+  border-radius:2px 2px 22px 22px;
+  background:linear-gradient(180deg,rgba(183,149,91,.35),rgba(183,149,91,.74))
+}
+.hero-glass:after{
+  content:"";position:absolute;left:28px;bottom:-28px;width:1.5px;height:28px;
+  background:rgba(255,255,255,.75);
+  box-shadow:-17px 28px 0 0 rgba(255,255,255,.75),17px 28px 0 0 rgba(255,255,255,.75)
+}
+.hero-glass i{
+  position:absolute;left:7px;top:27px;width:49px;height:1px;
+  background:rgba(255,255,255,.38);transform:rotate(-7deg)
+}
+.hero-reflection{
+  position:absolute;right:-35px;bottom:-36px;width:160px;height:60px;border-radius:50%;
+  background:radial-gradient(ellipse,rgba(255,255,255,.12),transparent 66%);
+  transform:rotate(-6deg)
+}
+
+/* Quiet supporting information */
+.metric-grid{margin:11px 0!important;gap:8px!important}
+.metric{
+  padding:14px 10px!important;
+  border-radius:18px!important;
+  background:rgba(251,250,246,.72)!important;
+  border:1px solid rgba(255,255,255,.75)!important;
+  box-shadow:0 8px 26px rgba(28,35,33,.045)!important
+}
+.metric strong{
+  font-size:1.34rem!important;
+  font-weight:600!important;
+  color:var(--ink-strong)!important
+}
+.metric span{
+  margin-top:3px!important;
+  color:#747c79!important;
+  font-size:.65rem!important
+}
+.card{
+  background:rgba(251,250,246,.82)!important;
+  border:1px solid rgba(255,255,255,.78)!important;
+  box-shadow:var(--premium-shadow)!important
+}
+.card h2,.page-intro h2{font-weight:610!important}
+.eyebrow{
+  color:#78827d!important;
+  font-size:.61rem!important;
+  letter-spacing:.12em!important
+}
+.eyebrow.light{color:rgba(255,255,255,.57)!important}
+.primary{
+  background:var(--night)!important;
+  box-shadow:0 9px 24px rgba(23,37,38,.16)!important
+}
+.secondary{
+  color:var(--night)!important;
+  background:rgba(23,37,38,.055)!important
+}
+
+/* Refined menu with assured stacking and touch behaviour */
+.menu-scrim{
+  z-index:900!important;
+  background:rgba(10,14,14,.38)!important;
+  backdrop-filter:blur(7px)!important;
+  -webkit-backdrop-filter:blur(7px)!important
+}
+.menu-scrim[hidden]{display:none!important}
+.app-menu{
+  z-index:910!important;
+  width:min(88vw,350px)!important;
+  background:rgba(24,34,34,.98)!important;
+  color:#f6f4ee!important;
+  box-shadow:-28px 0 80px rgba(0,0,0,.27)!important;
+  transition:transform .3s cubic-bezier(.2,.8,.2,1)!important;
+  will-change:transform
+}
+.app-menu.open{transform:translate3d(0,0,0)!important}
+.app-menu-links button{
+  min-height:49px!important;
+  font-weight:620!important;
+  letter-spacing:-.01em!important;
+  background:rgba(255,255,255,.045)!important
+}
+.menu-close{
+  width:40px;height:40px;border-radius:13px!important;
+  background:rgba(255,255,255,.07)!important;
+  display:grid;place-items:center;padding:0!important
+}
+
+/* Preserve the successful floating navigation, with small refinements */
+.bottom-nav{
+  border-radius:23px!important;
+  padding:5px!important;
+  background:rgba(248,247,242,.92)!important;
+  box-shadow:0 16px 48px rgba(24,34,34,.17)!important
+}
+.bottom-nav button{border-radius:17px!important}
+.bottom-nav button.active{
+  background:rgba(23,37,38,.075)!important;
+  color:var(--night)!important
+}
+
+/* More compact secondary page heads */
+.page-intro{
+  min-height:auto!important;
+  padding:20px!important;
+  background:linear-gradient(135deg,#243536,#172526)!important;
+  box-shadow:0 16px 42px rgba(23,37,38,.15)!important
+}
+.page-intro h2{font-size:1.8rem!important}
+.page-intro p{font-size:.84rem!important}
+
+/* Tactile forms and scanning */
+.premium-camera{
+  background:rgba(142,157,148,.09)!important;
+  border-color:rgba(23,37,38,.14)!important
+}
+.premium-camera .camera-orb{background:var(--night)!important}
+.scan-progress span{background:linear-gradient(90deg,var(--sage),var(--brass))!important}
+
+@media(max-width:420px){
+  .hero-card{
+    min-height:224px!important;
+    grid-template-columns:minmax(0,1.5fr) minmax(100px,.6fr)!important;
+    padding:24px 17px 22px 21px!important
+  }
+  .hero-card h2{font-size:2.18rem!important}
+  .hero-card p{font-size:.82rem!important}
+  .hero-art{height:164px}
+  .hero-moon{width:91px;height:91px}
+  .hero-glass{right:24px;transform:scale(.9)}
+  .hero-button{padding:0 14px!important;font-size:.78rem!important}
+}
+@media(prefers-color-scheme:dark){
+  :root{--canvas:#111615;--paper:#19201e;--ink-strong:#eeeee9;--ink-soft:#aab1ae}
+  body{background:radial-gradient(circle at 10% -5%,rgba(183,149,91,.08),transparent 25rem),#111615}
+  .topbar{background:rgba(17,22,21,.9)}
+  .menu-button{background:rgba(255,255,255,.055)!important;border-color:rgba(255,255,255,.07)!important}
+  .menu-button span{background:#ecece7!important}
+  .metric,.card{background:rgba(26,34,32,.84)!important;border-color:rgba(255,255,255,.055)!important}
+  .metric strong{color:#efefea!important}
+  .bottom-nav{background:rgba(25,32,30,.94)!important}
+}

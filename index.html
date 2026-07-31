@@ -8,7 +8,7 @@
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icons/favicon.png">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
-  <link rel="stylesheet" href="styles.css?v=2.0.0-dev">
+  <link rel="stylesheet" href="styles.css?v=2.0.1-dev">
   <title>Turn the Tide | Atlantic Edition</title>
 </head>
 <body>
@@ -29,12 +29,17 @@
     <main>
       <section id="dashboardView" class="view active">
         <section class="hero-card">
-          <div>
-            <span class="eyebrow light">Good evening</span>
-            <h2>What would you like tonight?</h2>
-            <p id="dashboardSummary">A thoughtful recommendation, shaped by your bar and your taste.</p>
+          <div class="hero-copy">
+            <span class="eyebrow light">Your evening, considered</span>
+            <h2>Find the right drink.</h2>
+            <p id="dashboardSummary">Chosen from your bar, your taste and the moment.</p>
+            <div class="hero-actions"><button class="primary hero-button" data-go="recommendView">Choose tonight’s drink</button></div>
           </div>
-          <div class="hero-actions"><button class="primary gold" data-go="recommendView">Choose tonight’s drink</button></div>
+          <div class="hero-art" aria-hidden="true">
+            <span class="hero-moon"></span>
+            <span class="hero-glass"><i></i></span>
+            <span class="hero-reflection"></span>
+          </div>
         </section>
 
         <section class="metric-grid">
@@ -335,7 +340,7 @@
           </div>
           <div class="about-meta-grid">
             <div><small>Application</small><strong>Turn the Tide</strong></div>
-            <div><small>Version</small><strong>2.0.0-dev</strong></div>
+            <div><small>Version</small><strong>2.0.1-dev</strong></div>
             <div><small>Recipe library</small><strong>140 recipes</strong></div>
             <div><small>Recipe data</small><strong>2026.07</strong></div>
             <div><small>Platform</small><strong>Progressive Web App</strong></div>
@@ -345,7 +350,7 @@
 
         <section id="releaseNotesSection" class="card menu-target">
           <span class="eyebrow">Release notes</span>
-          <h2>Atlantic Edition 2.0.0-dev</h2>
+          <h2>Atlantic Edition 2.0.1-dev</h2>
           <ul class="about-list">
             <li>Completed the 140-recipe mobile library.</li>
             <li>Added exact imperial and metric quantities.</li>
@@ -434,7 +439,7 @@
     </nav>
 
     <div class="app-menu-footer">
-      <strong>Turn the Tide 2.0.0-dev</strong>
+      <strong>Turn the Tide 2.0.1-dev</strong>
       <small>Recipe data 2026.07</small>
     </div>
   </aside>
@@ -520,6 +525,7 @@
     </form>
   </dialog>
 
-  <script src="app.js?v=2.0.0-dev"></script>
+  <script src="menu-controller.js?v=2.0.1-dev"></script>
+  <script src="app.js?v=2.0.1-dev"></script>
 </body>
 </html>

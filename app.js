@@ -613,7 +613,7 @@ window.openHistoryDetail=date=>{
 
 function renderAll(){renderDashboard();renderInventory();renderShopping();renderBarIQ();renderRecommendationControls();renderTaste()}
 
-const APP_VERSION="2.0.0-dev";
+const APP_VERSION="2.0.1-dev";
 const APP_STORAGE_KEYS=[
  STORAGE_KEY,WISHLIST_KEY,TASTE_KEY,HISTORY_KEY,FAV_KEY,MANUAL_PREF_KEY,FEEDBACK_KEY,
  "ttt_phase2_mood","ttt_phase2_occasion","ttt_phase2_strength"
@@ -642,10 +642,12 @@ function closeAppMenu(){
  menuScrim.hidden=true;
  document.body.style.overflow="";
 }
-menuBtn.addEventListener("click",openAppMenu);
-menuCloseBtn.addEventListener("click",closeAppMenu);
-menuScrim.addEventListener("click",closeAppMenu);
-document.addEventListener("keydown",e=>{if(e.key==="Escape"&&appMenu.classList.contains("open"))closeAppMenu()});
+if(!window.TTTMenu){
+ menuBtn?.addEventListener("click",openAppMenu);
+ menuCloseBtn?.addEventListener("click",closeAppMenu);
+ menuScrim?.addEventListener("click",closeAppMenu);
+ document.addEventListener("keydown",e=>{if(e.key==="Escape"&&appMenu?.classList.contains("open"))closeAppMenu()});
+}
 
 document.querySelectorAll("[data-menu-section]").forEach(button=>button.addEventListener("click",()=>{
  const sectionId=button.dataset.menuSection;

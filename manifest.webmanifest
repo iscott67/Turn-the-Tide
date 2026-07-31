@@ -4,8 +4,8 @@
   "description": "AI-assisted home bar inventory, purchase planning and Bar IQ.",
   "start_url": "./",
   "display": "standalone",
-  "background_color": "#F4F1E9",
-  "theme_color": "#F4F1E9",
+  "background_color": "#F1EFE9",
+  "theme_color": "#F1EFE9",
   "orientation": "portrait-primary",
   "icons": [
     {

@@ -1,29 +1,19 @@
 # Turn the Tide Release Notes
 
-## 2.0.0-dev — Atlantic Edition
+## 2.0.1-dev — UI and interaction refinement
 
-This build introduces a cohesive premium visual system and a rebuilt mobile scanning workflow.
+### Corrected
+- Rebuilt the hamburger interaction as a small independent controller, so it works even if another part of the application encounters an error.
+- Strengthened menu layering, scrim behaviour, focus handling and mobile scrolling.
 
-### Experience
+### Home
+- Reduced the hero from an oversized billboard to a compact editorial feature.
+- Replaced the broad teal treatment with an oyster, ink, sage and burnished-brass palette.
+- Added a restrained cocktail illustration and warmer visual detail.
+- Reduced headline weight and size, tightened supporting copy and refined the primary action.
+- Quieted the metric cards so they support rather than compete with the hero.
 
-- Introduced the Atlantic Edition design system: warm ivory, deep Atlantic teal, restrained gold, translucent surfaces and softer depth.
-- Reworked typography, spacing, buttons, cards, dialogs and bottom navigation.
-- Added automatic system dark mode.
-- Simplified the home experience around one conversational question and one primary action.
-
-### Shelf scanning
-
-- Moved the photo interface above the guidance.
-- Reframed scanning around one shelf at a time.
-- Limited each shelf to three overlapping photos.
-- Reduced uploaded images to 1,024 pixels at lower JPEG weight.
-- Added a 45-second client timeout.
-- Added a working Cancel action.
-- Added stage-specific progress: preparing, uploading and identifying.
-- Converted guidance into a collapsible panel below the interface.
-- Clears completed shelf photos after confirmed bottles are added, ready for the next shelf.
-
-### Deployment
-
-- Updated visible, JavaScript and service-worker versions to 2.0.0-dev.
-- Retained the GitHub-connected Netlify function and environment-variable architecture.
+### System-wide
+- Refined typography weights, spacing, surfaces, shadows and page introductions.
+- Preserved the floating bottom navigation, with only minor finishing adjustments.
+- Retained system dark mode and the improved shelf scanner.
