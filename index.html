@@ -8,7 +8,7 @@
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icons/favicon.png">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
-  <link rel="stylesheet" href="styles.css?v=3.1.1-dev">
+  <link rel="stylesheet" href="styles.css?v=3.2.0-dev">
   <title>Turn the Tide | Home Bar Companion</title>
 </head>
 <body>
@@ -32,6 +32,11 @@
           <span class="home-kicker">Good evening</span>
           <h2>Your bar has something worth making.</h2>
           <p id="dashboardSummary">We’ll show what is ready now and what is one ingredient away.</p>
+          <div class="home-context-row" aria-label="Current context">
+            <span id="homeTimeContext">Tonight</span>
+            <span id="homeWeatherContext">Local conditions</span>
+            <span id="homeTasteContext">Your taste</span>
+          </div>
         </section>
 
         <section class="home-action-card">
@@ -53,6 +58,23 @@
           <button type="button" data-go="scanView"><span class="line-icon icon-camera"></span><span>Scan shelf</span></button>
           <button type="button" data-go="shoppingView"><span class="line-icon icon-cart"></span><span>Shopping list</span></button>
           <button type="button" data-go="recommendView"><span class="line-icon icon-compass"></span><span>Choose a drink</span></button>
+        </section>
+
+        <section class="card capability-card">
+          <div class="section-heading">
+            <div><span class="eyebrow">Your bar today</span><h2>What it can do</h2></div>
+          </div>
+          <div class="capability-grid">
+            <button type="button" data-go="recommendView">
+              <strong id="capReady">0</strong><span>Ready now</span>
+            </button>
+            <button type="button" data-go="barIqView">
+              <strong id="capWithinReach">0</strong><span>One bottle away</span>
+            </button>
+            <button type="button" data-go="shoppingView">
+              <strong id="capShopping">0</strong><span>On your list</span>
+            </button>
+          </div>
         </section>
 
         <section id="dashboardInsightCard" class="card">
@@ -99,7 +121,7 @@
             <input id="barPhotos" type="file" accept="image/*" capture="environment" multiple>
           </label>
 
-          <div id="photoStrip" class="photo-strip"></div>
+          <div id="photoStrip" class="photo-strip"></div><p id="photoStripHint" class="photo-strip-hint">Add one to three overlapping photos of a single shelf.</p>
 
           <div class="scan-actions">
             <button id="analysePhotos" class="primary wide" disabled>Analyse photos</button>
@@ -367,7 +389,7 @@
           </div>
           <div class="about-meta-grid">
             <div><small>Application</small><strong>Turn the Tide</strong></div>
-            <div><small>Version</small><strong>3.1.1-dev</strong></div>
+            <div><small>Version</small><strong>3.2.0-dev</strong></div>
             <div><small>Recipe library</small><strong>140 recipes</strong></div>
             <div><small>Recipe data</small><strong>2026.07</strong></div>
             <div><small>Platform</small><strong>Progressive Web App</strong></div>
@@ -377,7 +399,7 @@
 
         <section id="releaseNotesSection" class="card menu-target">
           <span class="eyebrow">Release notes</span>
-          <h2>Atlantic Edition 3.1.1-dev</h2>
+          <h2>Atlantic Edition 3.2.0-dev</h2>
           <ul class="about-list">
             <li>Completed the 140-recipe mobile library.</li>
             <li>Added exact imperial and metric quantities.</li>
@@ -513,7 +535,7 @@
     </nav>
 
     <div class="app-menu-footer">
-      <strong>Turn the Tide 3.1.1-dev</strong>
+      <strong>Turn the Tide 3.2.0-dev</strong>
       <small>Recipe data 2026.07</small>
     </div>
   </aside>
@@ -613,7 +635,7 @@
     </form>
   </dialog>
 
-  <script src="menu-controller.js?v=3.1.1-dev"></script>
-  <script src="app.js?v=3.1.1-dev"></script>
+  <script src="menu-controller.js?v=3.2.0-dev"></script>
+  <script src="app.js?v=3.2.0-dev"></script>
 </body>
 </html>

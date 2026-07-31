@@ -1473,3 +1473,288 @@ strong{font-weight:620!important}
     transform:translateX(-50%)!important;
   }
 }
+
+
+/* ================================================================
+   Turn the Tide 3.2 — Beautiful release
+   Refined spacing, typography, cards, motion and screen hierarchy.
+   ================================================================ */
+:root{
+  --space-1:4px;
+  --space-2:8px;
+  --space-3:12px;
+  --space-4:16px;
+  --space-5:20px;
+  --space-6:24px;
+  --radius-sm:12px;
+  --radius-md:16px;
+  --radius-lg:22px;
+  --radius-xl:28px;
+  --shadow-card:0 8px 24px rgba(31,37,44,.055);
+  --shadow-float:0 18px 42px rgba(31,37,44,.12);
+}
+
+body{
+  font-family:"Avenir Next",-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Arial,sans-serif!important;
+  font-size:16px;
+  line-height:1.45;
+}
+
+main{
+  padding-top:14px!important;
+}
+
+.view.active{
+  animation:view-enter .24s cubic-bezier(.2,.8,.2,1);
+}
+@keyframes view-enter{
+  from{opacity:0;transform:translateY(5px)}
+  to{opacity:1;transform:none}
+}
+
+.home-welcome{
+  padding:22px 6px 12px!important;
+}
+.home-kicker{
+  font-size:.72rem!important;
+  letter-spacing:.04em!important;
+  text-transform:none!important;
+}
+.home-welcome h2{
+  max-width:580px!important;
+  font-size:clamp(2rem,8vw,3rem)!important;
+  line-height:1.04!important;
+  letter-spacing:-.048em!important;
+  font-weight:610!important;
+}
+.home-welcome p{
+  max-width:530px!important;
+  font-size:.94rem!important;
+  line-height:1.5!important;
+}
+.home-context-row{
+  display:flex;
+  flex-wrap:wrap;
+  gap:7px;
+  margin-top:14px;
+}
+.home-context-row span{
+  padding:7px 10px;
+  border-radius:999px;
+  background:var(--theme-surface);
+  border:1px solid var(--theme-line);
+  color:var(--theme-muted);
+  font-size:.68rem;
+  box-shadow:0 3px 10px rgba(31,37,44,.025);
+}
+
+.home-action-card{
+  padding:22px!important;
+  border-radius:24px!important;
+  min-height:132px;
+  position:relative;
+  overflow:hidden;
+}
+.home-action-card:after{
+  content:"";
+  position:absolute;
+  width:150px;height:150px;
+  right:-55px;top:-72px;
+  border-radius:50%;
+  background:rgba(255,255,255,.08);
+}
+.home-action-card h2{
+  font-size:1.48rem!important;
+}
+.home-action-card p{
+  max-width:360px;
+}
+.home-action-button{
+  position:relative;
+  z-index:2;
+  border-radius:14px!important;
+}
+
+.metric-grid{
+  margin:10px 0 12px!important;
+}
+.metric{
+  min-height:72px;
+  display:flex!important;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+}
+.metric strong{
+  font-size:1.35rem!important;
+}
+.metric span{
+  line-height:1.15;
+}
+
+.home-quick-actions button{
+  transition:transform .12s ease,box-shadow .12s ease;
+}
+.home-quick-actions button:active{
+  transform:scale(.98);
+}
+.home-quick-actions button:hover{
+  box-shadow:var(--shadow-card);
+}
+
+.capability-card{
+  padding:18px!important;
+}
+.capability-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:8px;
+  margin-top:14px;
+}
+.capability-grid button{
+  min-height:88px;
+  border:1px solid var(--theme-line);
+  border-radius:17px;
+  background:var(--theme-bg);
+  color:var(--theme-text);
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  justify-content:flex-end;
+  padding:14px;
+  text-align:left;
+}
+.capability-grid strong{
+  font-size:1.55rem;
+  line-height:1;
+}
+.capability-grid span{
+  margin-top:7px;
+  color:var(--theme-muted);
+  font-size:.68rem;
+  line-height:1.25;
+}
+
+.card{
+  padding:20px!important;
+  border-radius:22px!important;
+}
+.card+.card{
+  margin-top:12px!important;
+}
+.section-heading{
+  gap:14px;
+}
+.section-heading h2{
+  font-size:1.28rem!important;
+}
+
+.page-intro{
+  padding:20px!important;
+  border-radius:22px!important;
+  margin-bottom:12px!important;
+}
+.page-intro h2{
+  font-size:1.72rem!important;
+  margin-bottom:4px;
+}
+
+.inventory-row{
+  border-radius:16px;
+  padding:14px!important;
+  margin-bottom:8px;
+  border:1px solid var(--theme-line)!important;
+  background:var(--theme-surface);
+}
+.inventory-row:last-child{
+  margin-bottom:0;
+}
+.inventory-edit-button{
+  background:transparent!important;
+}
+
+.unlock-card{
+  box-shadow:none!important;
+  transition:border-color .12s ease,transform .12s ease;
+}
+.unlock-card:active{
+  transform:scale(.992);
+}
+.unlock-inline-actions button{
+  min-height:42px!important;
+}
+
+.scan-workspace{
+  padding:20px!important;
+}
+.photo-strip-hint{
+  margin:2px 0 12px!important;
+  font-size:.74rem!important;
+  line-height:1.4;
+}
+.photo-strip:not(:empty)+.photo-strip-hint{
+  color:var(--theme-muted)!important;
+}
+.premium-camera{
+  border-radius:18px!important;
+}
+.scan-guide summary{
+  min-height:56px;
+}
+
+.app-menu{
+  border-radius:24px 0 0 24px;
+}
+.menu-submenu summary{
+  min-height:52px;
+}
+.theme-choice{
+  min-height:46px;
+}
+
+.bottom-nav{
+  box-shadow:var(--shadow-float)!important;
+}
+.bottom-nav button{
+  transition:background .12s ease,color .12s ease,transform .12s ease;
+}
+.bottom-nav button:active{
+  transform:scale(.97);
+}
+
+.app-toast{
+  border-radius:14px!important;
+  bottom:calc(90px + env(safe-area-inset-bottom))!important;
+}
+
+@media(max-width:420px){
+  .home-welcome h2{
+    font-size:2.18rem!important;
+  }
+  .home-action-card{
+    align-items:flex-end;
+    gap:12px;
+  }
+  .home-action-button{
+    min-width:94px;
+  }
+  .capability-grid{
+    gap:6px;
+  }
+  .capability-grid button{
+    min-height:82px;
+    padding:12px 10px;
+  }
+  .capability-grid strong{
+    font-size:1.36rem;
+  }
+  .card{
+    padding:18px!important;
+  }
+}
+
+@media(prefers-reduced-motion:reduce){
+  .view.active{
+    animation:none!important;
+  }
+}

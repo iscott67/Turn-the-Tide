@@ -156,6 +156,15 @@ function calculateBarIQ(){
  return{score:Math.min(100,Math.round(65*(available/total))+Math.min(25,spirits*4)+Math.max(0,10-statusPenalty)),available,total,coverage}
 }
 
+
+function renderHomeContext(){
+ const hour=new Date().getHours();
+ const timeLabel=hour<12?"This morning":hour<17?"This afternoon":"Tonight";
+ if(homeTimeContext)homeTimeContext.textContent=timeLabel;
+ if(homeWeatherContext)homeWeatherContext.textContent=weatherGuess()==="warm"?"Warm weather":"Cool weather";
+ const topTaste=Object.entries(tasteProfile||{}).sort((a,b)=>Number(b[1])-Number(a[1]))[0];
+ if(homeTasteContext)homeTasteContext.textContent=topTaste?`${titleCase(topTaste[0])} leaning`:"Taste learning";
+}
 function renderDashboard(){
  const iq=calculateBarIQ();
  const low=inventory.filter(x=>x.status==="low");
@@ -168,6 +177,10 @@ function renderDashboard(){
  dashLow.textContent=iq.available;
  dashReplace.textContent=withinReach;
  dashIQ.textContent=iq.score;
+ if(capReady)capReady.textContent=iq.available;
+ if(capWithinReach)capWithinReach.textContent=withinReach;
+ if(capShopping)capShopping.textContent=wishlist.length;
+ renderHomeContext();
 
  if(!inventory.length){
   dashboardSummary.textContent="Scan your shelves to see what is ready now and what is one ingredient away.";
@@ -588,6 +601,13 @@ function renderPhotos(){
    <span class="photo-number">${i+1}</span>
    <button type="button" onclick="removePhoto(${i})" aria-label="Remove photo ${i+1}">×</button>
   </div>`).join("");
+ if(photoStripHint){
+  photoStripHint.textContent=count===0
+   ?"Add one to three overlapping photos of a single shelf."
+   :count<MAX_SCAN_PHOTOS
+    ?`${MAX_SCAN_PHOTOS-count} photo${MAX_SCAN_PHOTOS-count===1?"":"s"} remaining for this shelf.`
+    :"This shelf is ready to analyse.";
+ }
 }
 
 window.removePhoto=i=>{
@@ -840,7 +860,7 @@ function guessInventoryType(key){
 
 function renderAll(){renderDashboard();renderInventory();renderShopping();renderBarIQ();renderRecommendationControls();renderTaste();renderStaplesMenu()}
 
-const APP_VERSION="3.1.1-dev";
+const APP_VERSION="3.2.0-dev";
 const APP_STORAGE_KEYS=[
  STORAGE_KEY,WISHLIST_KEY,TASTE_KEY,HISTORY_KEY,FAV_KEY,MANUAL_PREF_KEY,FEEDBACK_KEY,
  "ttt_phase2_mood","ttt_phase2_occasion","ttt_phase2_strength",STAPLES_KEY,"ttt_theme"
