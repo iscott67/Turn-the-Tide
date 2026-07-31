@@ -1,17 +1,28 @@
 # Turn the Tide Release Notes
 
-## 2.0.1-dev — Revised interface build
+## 3.0.0-dev — Home Bar Companion foundation
 
-### Corrected
-- Corrected the About card contrast issue that caused white text to disappear against a pale surface.
-- Standardized every visible and runtime version reference to `2.0.1-dev`.
-- Updated service-worker caching so a newly deployed interface is less likely to be hidden by an older cached screen.
+This release starts the Version 3 product direction.
 
-### Interface
-- Shifted from an editorial-style treatment to a cleaner contemporary mobile-app design.
-- Introduced a crisp system sans-serif type hierarchy similar to modern iOS applications.
-- Reworked the palette around white, soft grey, charcoal and a restrained burgundy accent.
-- Reduced decorative effects, heavy shadows and translucent surfaces.
-- Rebuilt the home hero as a compact action card with clearer hierarchy and a simpler cocktail illustration.
-- Preserved the successful floating bottom navigation.
-- Improved card, form, menu, About and scanner consistency.
+### Honest capability counts
+- Home now distinguishes bottles, cocktails ready now, cocktails one ingredient away and Bar Score.
+- The app no longer presents a potentially confusing “x of 140” statement as the only measure of capability.
+- The curated library remains 140 recipes. Counts cannot exceed that library unless the library itself expands.
+
+### Bar settings
+- Added configurable kitchen staples such as lemon, lime, simple syrup, soda and salt.
+- Staples are included in recipe availability only when enabled.
+- This resolves the common problem where a bottle scan understates cocktail capability because it does not scan the refrigerator or pantry.
+
+### Inventory intelligence
+- Added an inventory composition wheel by spirit family.
+- Added a cocktail spectrum showing the styles available from the current bar.
+- Retained programme coverage and high-value bottle unlock analysis.
+
+### Personalization
+- Added Modern, Atlantic, Cellar and Midnight colour themes.
+- Added structured hamburger submenus for Appearance, Bar Settings, Information and App & Data.
+- Introduced Avenir Next and system sans-serif typography for a cleaner app-like hierarchy.
+
+### Experience
+- Replaced the decorative hero card with a simpler welcome, one focused action card and clearer capability metrics.

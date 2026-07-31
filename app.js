@@ -13,6 +13,21 @@ const FAV_KEY="turn_the_tide_phase2_favourites";
 const MANUAL_PREF_KEY="turn_the_tide_phase3_manual_preferences";
 const FEEDBACK_KEY="turn_the_tide_phase3_feedback";
 
+const STAPLES_KEY="turn_the_tide_v3_staples";
+const DEFAULT_STAPLES={
+ "lemon":true,
+ "lime":true,
+ "simple syrup":true,
+ "sugar":true,
+ "soda":true,
+ "saline":true,
+ "mint":false,
+ "cucumber":false,
+ "coffee":false,
+ "cream":false
+};
+
+
 let inventory=JSON.parse(localStorage.getItem(STORAGE_KEY)||"null")||[
  {id:crypto.randomUUID(),name:"Tanqueray Gin",brand:"Tanqueray",type:"Gin",status:"good",notes:""},
  {id:crypto.randomUUID(),name:"St-Germain",brand:"St-Germain",type:"Liqueur",status:"low",notes:""},
@@ -30,6 +45,7 @@ let history=JSON.parse(localStorage.getItem(HISTORY_KEY)||"[]");
 let favourites=JSON.parse(localStorage.getItem(FAV_KEY)||"[]");
 let manualPreferences=JSON.parse(localStorage.getItem(MANUAL_PREF_KEY)||"{}");
 let detailedFeedback=JSON.parse(localStorage.getItem(FEEDBACK_KEY)||"[]");
+let staples={...DEFAULT_STAPLES,...JSON.parse(localStorage.getItem(STAPLES_KEY)||"{}")};
 let photos=[],candidates=[];
 let selectedMood=localStorage.getItem("ttt_phase2_mood")||"relaxed";
 let selectedOccasion=localStorage.getItem("ttt_phase2_occasion")||"quiet";
@@ -74,10 +90,11 @@ function save(){
  localStorage.setItem(FAV_KEY,JSON.stringify(favourites));
  localStorage.setItem(MANUAL_PREF_KEY,JSON.stringify(manualPreferences));
  localStorage.setItem(FEEDBACK_KEY,JSON.stringify(detailedFeedback));
+ localStorage.setItem(STAPLES_KEY,JSON.stringify(staples));
  renderAll()
 }
 function normalizedInventory(){return inventory.filter(x=>x.status!=="replace").flatMap(x=>[(x.name||"").toLowerCase(),(x.brand||"").toLowerCase(),(x.type||"").toLowerCase(),(x.notes||"").toLowerCase()])}
-function hasIngredient(key){const hay=normalizedInventory().join(" | ");return (ingredientAliases[key]||[key]).some(a=>hay.includes(a))}
+function hasIngredient(key){if(staples[key])return true;const hay=normalizedInventory().join(" | ");return (ingredientAliases[key]||[key]).some(a=>hay.includes(a))}
 function missingFor(r){return r.requires.filter(x=>!hasIngredient(x))}
 function availableRecipes(){return RECIPE_LIBRARY.filter(r=>missingFor(r).length===0)}
 function statusLabel(s){return s==="low"?"Running low":s==="replace"?"Need to replace":"Good"}
@@ -141,36 +158,40 @@ function calculateBarIQ(){
 }
 
 function renderDashboard(){
- const iq=calculateBarIQ(),low=inventory.filter(x=>x.status==="low"),replace=inventory.filter(x=>x.status==="replace");
+ const iq=calculateBarIQ();
+ const low=inventory.filter(x=>x.status==="low");
+ const replace=inventory.filter(x=>x.status==="replace");
  const purchase=[...replace,...low];
  const unlocks=calculateUnlocks();
+ const withinReach=RECIPE_LIBRARY.filter(r=>missingFor(r).length===1).length;
+
  dashItems.textContent=inventory.length;
- dashLow.textContent=low.length;
- dashReplace.textContent=replace.length;
+ dashLow.textContent=iq.available;
+ dashReplace.textContent=withinReach;
  dashIQ.textContent=iq.score;
 
  if(!inventory.length){
-  dashboardSummary.textContent="Scan your shelves, tell us what you enjoy and let Turn the Tide choose the right drink for the moment.";
+  dashboardSummary.textContent="Scan your shelves to see what is ready now and what is one ingredient away.";
   insightTitle.textContent="Build your first inventory";
-  insightBody.textContent="A guided photo scan will identify visible bottles and ask you to confirm every result.";
+  insightBody.textContent="Scan one shelf at a time, then confirm the bottles the app identifies.";
   insightAction.textContent="Start inventory scan";
   insightAction.dataset.go="scanView";
  }else{
-  dashboardSummary.textContent=`Your bar can currently make ${iq.available} of ${iq.total} curated cocktails.`;
+  dashboardSummary.textContent=`${iq.available} ready now · ${withinReach} one ingredient away · ${iq.total} recipes in the curated library.`;
   if(replace.length){
    insightTitle.textContent=`Replace ${replace[0].name}`;
-   insightBody.textContent="It is marked for replacement and has been added to your purchase list.";
+   insightBody.textContent="It is marked for replacement and appears on your purchase list.";
    insightAction.textContent="View purchase list";
    insightAction.dataset.go="shoppingView";
   }else if(unlocks.length){
-   insightTitle.textContent=`Consider ${titleCase(unlocks[0].key)}`;
-   insightBody.textContent=`It would unlock ${unlocks[0].gain} additional curated cocktails.`;
-   insightAction.textContent="View Bar IQ";
+   insightTitle.textContent=`One bottle could unlock ${unlocks[0].gain} drinks`;
+   insightBody.textContent=`${titleCase(unlocks[0].key)} currently adds the most capability without duplicating your bar.`;
+   insightAction.textContent="See inventory analysis";
    insightAction.dataset.go="barIqView";
   }else{
-   insightTitle.textContent="Your bar is well covered";
-   insightBody.textContent="No obvious high-value gaps appear in the current recipe library.";
-   insightAction.textContent="View Bar IQ";
+   insightTitle.textContent="Your bar is broadly covered";
+   insightBody.textContent="Review the inventory spectrum for balance and fresh directions.";
+   insightAction.textContent="See inventory analysis";
    insightAction.dataset.go="barIqView";
   }
  }
@@ -205,12 +226,106 @@ window.markPurchased=id=>{const x=inventory.find(i=>i.id===id);if(x){x.status="g
 window.removeWishlist=i=>{wishlist.splice(i,1);save()};window.buyWishlist=i=>{const x=wishlist[i];inventory.push({id:crypto.randomUUID(),name:x.name,brand:"",type:"Other",status:"good",notes:x.reason||""});wishlist.splice(i,1);save()};
 addWishlistBtn.onclick=()=>wishlistDialog.showModal();wishlistForm.onsubmit=e=>{e.preventDefault();wishlist.push({name:wishlistName.value.trim(),reason:wishlistReason.value.trim()});wishlistName.value="";wishlistReason.value="";wishlistDialog.close();save()};
 
+
+const INVENTORY_GROUPS=[
+ {name:"Gin",types:["Gin"],colour:"#9c3340"},
+ {name:"Whisky",types:["Canadian whisky","Scotch","Irish whiskey"],colour:"#c58a42"},
+ {name:"Rum",types:["Rum"],colour:"#5c8a85"},
+ {name:"Agave",types:["Tequila"],colour:"#6c7db0"},
+ {name:"Brandy",types:["Brandy/Cognac"],colour:"#a66f55"},
+ {name:"Liqueurs",types:["Liqueur","Amaro/Aperitivo","Vermouth/Fortified wine"],colour:"#9b6c9e"},
+ {name:"Bitters & Mixers",types:["Bitters","Mixer","Fresh ingredient","Other"],colour:"#8b9692"}
+];
+
+function inventoryComposition(){
+ return INVENTORY_GROUPS.map(group=>({
+  ...group,
+  count:inventory.filter(item=>item.status!=="replace"&&group.types.includes(item.type)).length
+ })).filter(group=>group.count>0);
+}
+
+function renderInventoryAnalysis(){
+ const composition=inventoryComposition();
+ const total=composition.reduce((sum,group)=>sum+group.count,0);
+ if(!inventoryWheel||!inventoryLegend||!cocktailSpectrum)return;
+
+ if(!total){
+  inventoryWheel.style.background="#eceef0";
+  inventoryWheelLabel.textContent="No inventory";
+  inventoryLegend.innerHTML='<p class="helper">Scan or add bottles to see your bar composition.</p>';
+ }else{
+  let cursor=0;
+  const segments=composition.map(group=>{
+   const start=cursor;
+   cursor+=group.count/total*360;
+   return `${group.colour} ${start}deg ${cursor}deg`;
+  });
+  inventoryWheel.style.background=`conic-gradient(${segments.join(",")})`;
+  inventoryWheelLabel.textContent=`${total} items`;
+  inventoryLegend.innerHTML=composition.map(group=>`
+   <div class="legend-row">
+    <span class="legend-swatch" style="background:${group.colour}"></span>
+    <strong>${group.name}</strong>
+    <span>${group.count}</span>
+   </div>`).join("");
+ }
+
+ const ready=availableRecipes();
+ const dimensions=[
+  {label:"Refreshing",tags:["bright","refreshing","crisp","citrusy","long"]},
+  {label:"Spirit-forward",tags:["spirit-forward","strong","classic"]},
+  {label:"Bitter",tags:["bitter","aperitivo","amaro"]},
+  {label:"Fruity & floral",tags:["fruity","floral","tropical"]},
+  {label:"Rich",tags:["rich","maple","creamy","dessert"]},
+  {label:"Herbal",tags:["herbal","green","complex"]}
+ ];
+ const counts=dimensions.map(d=>({
+  ...d,
+  count:ready.filter(recipe=>recipe.tags.some(tag=>d.tags.includes(tag))).length
+ }));
+ const maximum=Math.max(1,...counts.map(item=>item.count));
+ cocktailSpectrum.innerHTML=counts.map(item=>`
+  <div class="spectrum-row">
+   <span>${item.label}</span>
+   <div class="spectrum-track"><i style="width:${Math.round(item.count/maximum*100)}%"></i></div>
+   <strong>${item.count}</strong>
+  </div>`).join("");
+}
+
+function renderStaplesMenu(){
+ if(!staplesMenu)return;
+ const labels={
+  "lemon":"Fresh lemon",
+  "lime":"Fresh lime",
+  "simple syrup":"Simple syrup",
+  "sugar":"Sugar",
+  "soda":"Soda water",
+  "saline":"Salt / saline",
+  "mint":"Fresh mint",
+  "cucumber":"Cucumber",
+  "coffee":"Coffee",
+  "cream":"Cream"
+ };
+ staplesMenu.innerHTML=Object.keys(DEFAULT_STAPLES).map(key=>`
+  <label class="staple-toggle">
+   <span>${labels[key]}</span>
+   <input type="checkbox" data-staple="${key}" ${staples[key]?"checked":""}>
+  </label>`).join("");
+ staplesMenu.querySelectorAll("[data-staple]").forEach(input=>input.addEventListener("change",()=>{
+  staples[input.dataset.staple]=input.checked;
+  localStorage.setItem(STAPLES_KEY,JSON.stringify(staples));
+  renderAll();
+  getRecommendations();
+ }));
+}
+
 function renderBarIQ(){
  const iq=calculateBarIQ();barIqScore.textContent=iq.score;document.querySelector(".score-ring").style.setProperty("--score",`${iq.score}%`);
  barIqLabel.textContent=iq.score>=80?"Highly capable":iq.score>=60?"Well rounded":iq.score>=40?"Developing":"Early-stage bar";
  barIqSummary.textContent=`You can make ${iq.available} of ${iq.total} curated cocktails. Bar IQ rewards capability, balance and bottle maintenance.`;
  programmeScores.innerHTML=iq.coverage.map(x=>`<div class="programme-row"><strong>${x.name}</strong><div class="bar-track"><div class="bar-fill" style="width:${x.score}%"></div></div><span>${x.score}</span></div>`).join("");
  const unlocks=calculateUnlocks().slice(0,8);unlockList.innerHTML=unlocks.length?unlocks.map(x=>`<div class="unlock-row"><strong>${titleCase(x.key)}</strong><small>Unlocks ${x.gain} additional cocktails</small></div>`).join(""):`<div class="unlock-row">No single missing ingredient unlocks an additional recipe.</div>`
+ renderInventoryAnalysis();
 }
 
 function scoreRecipe(r){
@@ -611,12 +726,12 @@ window.openHistoryDetail=date=>{
  historyDetailDialog.showModal()
 };
 
-function renderAll(){renderDashboard();renderInventory();renderShopping();renderBarIQ();renderRecommendationControls();renderTaste()}
+function renderAll(){renderDashboard();renderInventory();renderShopping();renderBarIQ();renderRecommendationControls();renderTaste();renderStaplesMenu()}
 
-const APP_VERSION="2.0.1-dev";
+const APP_VERSION="3.0.0-dev";
 const APP_STORAGE_KEYS=[
  STORAGE_KEY,WISHLIST_KEY,TASTE_KEY,HISTORY_KEY,FAV_KEY,MANUAL_PREF_KEY,FEEDBACK_KEY,
- "ttt_phase2_mood","ttt_phase2_occasion","ttt_phase2_strength"
+ "ttt_phase2_mood","ttt_phase2_occasion","ttt_phase2_strength",STAPLES_KEY,"ttt_theme"
 ];
 
 const menuBtn=document.getElementById("menuBtn");

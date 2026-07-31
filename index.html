@@ -8,8 +8,8 @@
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icons/favicon.png">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
-  <link rel="stylesheet" href="styles.css?v=2.0.1-dev-r2">
-  <title>Turn the Tide | Atlantic Edition</title>
+  <link rel="stylesheet" href="styles.css?v=3.0.0-dev">
+  <title>Turn the Tide | Home Bar Companion</title>
 </head>
 <body>
   <div class="app-shell">
@@ -18,7 +18,7 @@
         <img src="icons/icon-192.png" class="brand-icon" alt="">
         <div>
           <h1>Turn the Tide</h1>
-          <p>Personal AI bartender</p>
+          <p>AI home bar companion</p>
         </div>
       </div>
       <button id="menuBtn" class="menu-button" type="button" aria-label="Open menu" aria-controls="appMenu" aria-expanded="false">
@@ -28,29 +28,26 @@
 
     <main>
       <section id="dashboardView" class="view active">
-        <section class="hero-card">
-          <div class="hero-copy">
+        <section class="home-welcome">
+          <span class="home-kicker">Good evening</span>
+          <h2>Your bar has something worth making.</h2>
+          <p id="dashboardSummary">We’ll show what is ready now and what is one ingredient away.</p>
+        </section>
+
+        <section class="home-action-card">
+          <div>
             <span class="eyebrow">Tonight</span>
-            <h2>What are you in the mood for?</h2>
-            <p id="dashboardSummary">A recommendation shaped by your bar, your taste and the moment.</p>
-            <div class="hero-actions">
-              <button class="primary hero-button" data-go="recommendView">Choose a drink</button>
-            </div>
+            <h2>Find the right drink</h2>
+            <p>A recommendation shaped by your inventory, taste and the moment.</p>
           </div>
-          <div class="hero-art" aria-hidden="true">
-            <span class="hero-orb"></span>
-            <span class="hero-cocktail">
-              <i class="hero-liquid"></i>
-              <i class="hero-garnish"></i>
-            </span>
-          </div>
+          <button class="primary home-action-button" data-go="recommendView">Choose a drink</button>
         </section>
 
         <section class="metric-grid">
-          <article class="metric"><strong id="dashItems">0</strong><span>Items</span></article>
-          <article class="metric"><strong id="dashLow">0</strong><span>Running low</span></article>
-          <article class="metric"><strong id="dashReplace">0</strong><span>Replace</span></article>
-          <article class="metric"><strong id="dashIQ">0</strong><span>Bar IQ</span></article>
+          <article class="metric"><strong id="dashItems">0</strong><span>Bottles</span></article>
+          <article class="metric"><strong id="dashLow">0</strong><span>Ready now</span></article>
+          <article class="metric"><strong id="dashReplace">0</strong><span>Within reach</span></article>
+          <article class="metric"><strong id="dashIQ">0</strong><span>Bar score</span></article>
         </section>
 
         <section id="dashboardInsightCard" class="card">
@@ -313,6 +310,27 @@
           </div>
         </section>
 
+        <section class="card inventory-analysis-card">
+          <div class="section-heading">
+            <div><span class="eyebrow">Inventory analysis</span><h2>Your bar at a glance</h2></div>
+          </div>
+          <div class="analysis-layout">
+            <div>
+              <div id="inventoryWheel" class="inventory-wheel" aria-label="Inventory composition chart"></div>
+              <p id="inventoryWheelLabel" class="analysis-centre-label">No inventory</p>
+            </div>
+            <div id="inventoryLegend" class="analysis-legend"></div>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="section-heading">
+            <div><span class="eyebrow">Cocktail spectrum</span><h2>Where your bar can travel</h2></div>
+          </div>
+          <p class="helper">The spectrum reflects drinks you can make now, including the everyday staples enabled in Bar Settings.</p>
+          <div id="cocktailSpectrum" class="cocktail-spectrum"></div>
+        </section>
+
         <section class="card">
           <div class="section-heading"><div><span class="eyebrow">Coverage</span><h2>Bar programmes</h2></div></div>
           <div id="programmeScores" class="programme-list"></div>
@@ -344,7 +362,7 @@
           </div>
           <div class="about-meta-grid">
             <div><small>Application</small><strong>Turn the Tide</strong></div>
-            <div><small>Version</small><strong>2.0.1-dev</strong></div>
+            <div><small>Version</small><strong>3.0.0-dev</strong></div>
             <div><small>Recipe library</small><strong>140 recipes</strong></div>
             <div><small>Recipe data</small><strong>2026.07</strong></div>
             <div><small>Platform</small><strong>Progressive Web App</strong></div>
@@ -354,7 +372,7 @@
 
         <section id="releaseNotesSection" class="card menu-target">
           <span class="eyebrow">Release notes</span>
-          <h2>Atlantic Edition 2.0.1-dev</h2>
+          <h2>Atlantic Edition 3.0.0-dev</h2>
           <ul class="about-list">
             <li>Completed the 140-recipe mobile library.</li>
             <li>Added exact imperial and metric quantities.</li>
@@ -430,20 +448,48 @@
     </div>
 
     <nav class="app-menu-links">
-      <span class="menu-group-label">Information</span>
-      <button type="button" data-menu-section="aboutSection">About</button>
-      <button type="button" data-menu-section="releaseNotesSection">What’s New</button>
-      <button type="button" data-menu-section="privacySection">Privacy</button>
-      <button type="button" data-menu-section="responsibleUseSection">Responsible Use</button>
-      <button type="button" data-menu-section="helpSection">Help</button>
+      <details class="menu-submenu" open>
+        <summary>Appearance</summary>
+        <div class="menu-submenu-body">
+          <div class="theme-picker" role="group" aria-label="Colour theme">
+            <button type="button" class="theme-choice" data-theme-choice="modern"><span class="theme-dot theme-modern"></span>Modern</button>
+            <button type="button" class="theme-choice" data-theme-choice="atlantic"><span class="theme-dot theme-atlantic"></span>Atlantic</button>
+            <button type="button" class="theme-choice" data-theme-choice="cellar"><span class="theme-dot theme-cellar"></span>Cellar</button>
+            <button type="button" class="theme-choice" data-theme-choice="midnight"><span class="theme-dot theme-midnight"></span>Midnight</button>
+          </div>
+        </div>
+      </details>
 
-      <span class="menu-group-label menu-group-spaced">App</span>
-      <button id="menuInstallBtn" type="button" class="hidden">Install App</button>
-      <button type="button" class="menu-danger-link" data-menu-section="resetSection">Reset App Data</button>
+      <details class="menu-submenu">
+        <summary>Bar Settings</summary>
+        <div class="menu-submenu-body">
+          <p class="menu-helper">Count common kitchen ingredients when calculating available cocktails.</p>
+          <div id="staplesMenu" class="staples-menu"></div>
+        </div>
+      </details>
+
+      <details class="menu-submenu">
+        <summary>Information</summary>
+        <div class="menu-submenu-body menu-link-stack">
+          <button type="button" data-menu-section="aboutSection">About</button>
+          <button type="button" data-menu-section="releaseNotesSection">What’s New</button>
+          <button type="button" data-menu-section="privacySection">Privacy</button>
+          <button type="button" data-menu-section="responsibleUseSection">Responsible Use</button>
+          <button type="button" data-menu-section="helpSection">Help</button>
+        </div>
+      </details>
+
+      <details class="menu-submenu">
+        <summary>App & Data</summary>
+        <div class="menu-submenu-body menu-link-stack">
+          <button id="menuInstallBtn" type="button" class="hidden">Install App</button>
+          <button type="button" class="menu-danger-link" data-menu-section="resetSection">Reset App Data</button>
+        </div>
+      </details>
     </nav>
 
     <div class="app-menu-footer">
-      <strong>Turn the Tide 2.0.1-dev</strong>
+      <strong>Turn the Tide 3.0.0-dev</strong>
       <small>Recipe data 2026.07</small>
     </div>
   </aside>
@@ -529,7 +575,7 @@
     </form>
   </dialog>
 
-  <script src="menu-controller.js?v=2.0.1-dev-r2"></script>
-  <script src="app.js?v=2.0.1-dev-r2"></script>
+  <script src="menu-controller.js?v=3.0.0-dev"></script>
+  <script src="app.js?v=3.0.0-dev"></script>
 </body>
 </html>

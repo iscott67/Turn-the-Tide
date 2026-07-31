@@ -1043,3 +1043,193 @@ input:focus,select:focus,textarea:focus{
   .app-menu-links button{background:#24272a!important}
   input,select,textarea{background:#202326!important}
 }
+
+
+/* ================================================================
+   Turn the Tide 3.0 — Home Bar Companion foundation
+   Clean mobile hierarchy inspired by contemporary iOS applications.
+   ================================================================ */
+:root,
+:root[data-theme="modern"]{
+ --theme-bg:#f4f5f6;
+ --theme-surface:#ffffff;
+ --theme-text:#181b20;
+ --theme-muted:#707780;
+ --theme-line:#e6e8eb;
+ --theme-accent:#9d2434;
+ --theme-accent-soft:#f7e7ea;
+ --theme-secondary:#273a3d;
+ --theme-shadow:0 8px 24px rgba(31,37,44,.07);
+}
+:root[data-theme="atlantic"]{
+ --theme-bg:#eef4f3;
+ --theme-surface:#ffffff;
+ --theme-text:#132a2d;
+ --theme-muted:#667a79;
+ --theme-line:#dce8e5;
+ --theme-accent:#0d7778;
+ --theme-accent-soft:#dff1ef;
+ --theme-secondary:#093f45;
+ --theme-shadow:0 8px 24px rgba(8,63,69,.08);
+}
+:root[data-theme="cellar"]{
+ --theme-bg:#f5f0e7;
+ --theme-surface:#fffdf8;
+ --theme-text:#33281f;
+ --theme-muted:#7e7064;
+ --theme-line:#ebe0d1;
+ --theme-accent:#9b4b2f;
+ --theme-accent-soft:#f4e4d8;
+ --theme-secondary:#5b3b2c;
+ --theme-shadow:0 8px 24px rgba(74,48,33,.08);
+}
+:root[data-theme="midnight"]{
+ --theme-bg:#111418;
+ --theme-surface:#1c2025;
+ --theme-text:#f5f6f7;
+ --theme-muted:#9ca3ab;
+ --theme-line:#2a3037;
+ --theme-accent:#7ba7ff;
+ --theme-accent-soft:#263958;
+ --theme-secondary:#d9e3f7;
+ --theme-shadow:0 8px 24px rgba(0,0,0,.24);
+}
+
+html,body{background:var(--theme-bg)!important}
+body{
+ font-family:"Avenir Next",-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Arial,sans-serif!important;
+ color:var(--theme-text)!important
+}
+.topbar{background:color-mix(in srgb,var(--theme-bg) 92%,transparent)!important}
+.brand h1,.card h2,.section-heading h2,.page-intro h2{
+ font-family:"Avenir Next",-apple-system,BlinkMacSystemFont,"SF Pro Display","Helvetica Neue",Arial,sans-serif!important;
+ color:var(--theme-text)!important
+}
+.brand p,p,.helper,.status-text{color:var(--theme-muted)!important}
+.card,.metric,.page-intro{
+ background:var(--theme-surface)!important;
+ border-color:var(--theme-line)!important;
+ box-shadow:var(--theme-shadow)!important
+}
+.primary{background:var(--theme-accent)!important}
+.secondary{background:var(--theme-accent-soft)!important;color:var(--theme-text)!important}
+.menu-button{background:var(--theme-surface)!important;border-color:var(--theme-line)!important}
+.menu-button span{background:var(--theme-text)!important}
+.bottom-nav{background:color-mix(in srgb,var(--theme-surface) 94%,transparent)!important;border-color:var(--theme-line)!important}
+.bottom-nav button.active{background:var(--theme-accent-soft)!important;color:var(--theme-accent)!important}
+input,select,textarea{background:var(--theme-surface)!important;color:var(--theme-text)!important;border-color:var(--theme-line)!important}
+
+.home-welcome{padding:17px 5px 9px}
+.home-kicker{
+ display:block;color:var(--theme-muted);font-size:.75rem;font-weight:700;
+ letter-spacing:.02em;margin-bottom:5px
+}
+.home-welcome h2{
+ margin:0;max-width:570px;font-size:clamp(1.85rem,8vw,2.8rem);
+ line-height:1.08;letter-spacing:-.045em;font-weight:750;color:var(--theme-text)
+}
+.home-welcome p{margin:.65rem 0 0;font-size:.92rem;line-height:1.45}
+
+.home-action-card{
+ display:flex;align-items:center;justify-content:space-between;gap:18px;
+ margin:12px 0;padding:20px;border-radius:22px;
+ background:var(--theme-secondary);color:#fff;box-shadow:var(--theme-shadow)
+}
+.home-action-card h2{margin:.3rem 0 .3rem;color:#fff;font-size:1.35rem;letter-spacing:-.03em}
+.home-action-card p{margin:0;color:rgba(255,255,255,.7)!important;font-size:.8rem;line-height:1.4}
+.home-action-card .eyebrow{color:rgba(255,255,255,.68)!important}
+.home-action-button{
+ flex:0 0 auto;min-width:112px;background:#fff!important;color:#202529!important;
+ box-shadow:none!important
+}
+
+.metric-grid{grid-template-columns:repeat(4,minmax(0,1fr))!important}
+.metric{padding:14px 7px!important}
+.metric strong{font-size:1.28rem!important}
+.metric span{font-size:.61rem!important;white-space:normal!important;text-align:center}
+
+.inventory-analysis-card{overflow:hidden}
+.analysis-layout{
+ display:grid;grid-template-columns:145px 1fr;gap:18px;align-items:center;margin-top:15px
+}
+.analysis-layout>div:first-child{position:relative;display:grid;place-items:center}
+.inventory-wheel{
+ width:134px;height:134px;border-radius:50%;
+ position:relative;box-shadow:inset 0 0 0 1px var(--theme-line)
+}
+.inventory-wheel:after{
+ content:"";position:absolute;inset:26px;border-radius:50%;
+ background:var(--theme-surface);box-shadow:0 0 0 1px var(--theme-line)
+}
+.analysis-centre-label{
+ position:absolute;z-index:2;margin:0!important;text-align:center;
+ font-size:.72rem!important;font-weight:800;color:var(--theme-text)!important
+}
+.analysis-legend{display:grid;gap:8px}
+.legend-row{
+ display:grid;grid-template-columns:12px 1fr auto;gap:8px;align-items:center;
+ font-size:.77rem;color:var(--theme-muted)
+}
+.legend-row strong{color:var(--theme-text);font-size:.78rem}
+.legend-swatch{width:10px;height:10px;border-radius:50%}
+
+.cocktail-spectrum{display:grid;gap:13px;margin-top:17px}
+.spectrum-row{
+ display:grid;grid-template-columns:92px 1fr 27px;gap:10px;align-items:center;
+ font-size:.75rem;color:var(--theme-muted)
+}
+.spectrum-row strong{text-align:right;color:var(--theme-text)}
+.spectrum-track{height:9px;border-radius:999px;background:var(--theme-line);overflow:hidden}
+.spectrum-track i{
+ display:block;height:100%;border-radius:inherit;
+ background:linear-gradient(90deg,var(--theme-accent),color-mix(in srgb,var(--theme-accent) 55%,#ffd26a))
+}
+
+.app-menu{background:var(--theme-surface)!important;color:var(--theme-text)!important}
+.app-menu-header h2,.app-menu .eyebrow{color:var(--theme-text)!important}
+.menu-close{color:var(--theme-text)!important;background:var(--theme-bg)!important}
+.app-menu-footer{color:var(--theme-muted)!important}
+.app-menu-footer strong{color:var(--theme-text)!important}
+.menu-submenu{border-bottom:1px solid var(--theme-line)}
+.menu-submenu summary{
+ list-style:none;cursor:pointer;padding:15px 2px;
+ display:flex;justify-content:space-between;align-items:center;
+ color:var(--theme-text);font-weight:750;font-size:.9rem
+}
+.menu-submenu summary::-webkit-details-marker{display:none}
+.menu-submenu summary:after{content:"+";color:var(--theme-muted);font-size:1.2rem;font-weight:500}
+.menu-submenu[open] summary:after{content:"−"}
+.menu-submenu-body{padding:0 0 16px}
+.menu-helper{font-size:.75rem!important;line-height:1.4;margin:0 0 10px}
+.menu-link-stack{display:grid;gap:7px}
+.menu-link-stack button{
+ min-height:45px;border:1px solid var(--theme-line);border-radius:13px;
+ background:var(--theme-bg);color:var(--theme-text);text-align:left;padding:0 13px;font-weight:650
+}
+.theme-picker{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.theme-choice{
+ min-height:43px;border:1px solid var(--theme-line);border-radius:13px;
+ background:var(--theme-bg);color:var(--theme-text);font-weight:650;
+ display:flex;align-items:center;gap:8px;padding:0 11px
+}
+.theme-choice.active{outline:2px solid var(--theme-accent);outline-offset:1px}
+.theme-dot{width:17px;height:17px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(0,0,0,.1)}
+.theme-modern{background:#9d2434}.theme-atlantic{background:#0d7778}
+.theme-cellar{background:#9b4b2f}.theme-midnight{background:#24375e}
+.staples-menu{display:grid;gap:4px}
+.staple-toggle{
+ display:flex;align-items:center;justify-content:space-between;
+ min-height:40px;color:var(--theme-text);font-size:.8rem
+}
+.staple-toggle input{width:20px;height:20px;accent-color:var(--theme-accent)}
+
+@media(max-width:480px){
+ .home-action-card{align-items:flex-end}
+ .home-action-button{min-width:96px;padding:0 12px!important;font-size:.76rem!important}
+ .metric-grid{gap:6px!important}
+ .metric{padding:12px 4px!important}
+ .analysis-layout{grid-template-columns:125px 1fr;gap:12px}
+ .inventory-wheel{width:118px;height:118px}
+ .inventory-wheel:after{inset:23px}
+ .spectrum-row{grid-template-columns:82px 1fr 24px;gap:7px}
+}

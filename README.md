@@ -1,40 +1,29 @@
-# Turn the Tide — Atlantic Edition
+# Turn the Tide
 
-**Current development version: 2.0.1-dev**
+**Current development version: 3.0.0-dev**
 
-Turn the Tide is a mobile-first personal AI bartender that combines inventory, context and learned taste to recommend the right drink for the moment.
+Turn the Tide is an AI home bar companion. It combines inventory, configurable kitchen staples, taste history and context to show what can be made now, what is within reach and what addition would improve the bar most.
 
-## Atlantic Edition
+## Version 3 foundation
 
-Version 2 introduces a cohesive premium interface built around:
+- Honest “ready now” and “one ingredient away” counts
+- Configurable kitchen staples
+- Inventory composition wheel
+- Cocktail-style spectrum
+- Theme switching
+- Structured application settings
+- Existing inventory scanning, recommendations, Taste and Bar IQ
 
-- calm hierarchy and generous spacing;
-- a restrained Atlantic palette;
-- translucent, tactile surfaces;
-- editorial typography;
-- system dark mode;
-- a shelf-by-shelf AI scanning workflow.
+## Netlify
 
-## Netlify configuration
-
-Connect the repository's `main` branch to Netlify.
-
-- Build command: leave blank
+- Build command: blank
 - Publish directory: `.`
 - Functions directory: `netlify/functions`
+- Required environment variable: `OPENAI_API_KEY`
 
-Required environment variable:
+## Deploy with GitHub Desktop
 
-```text
-OPENAI_API_KEY
-```
-
-Do not store the API key in GitHub.
-
-## Deploying an update with GitHub Desktop
-
-1. Copy the contents of this package into the local repository folder.
-2. In GitHub Desktop, review the changed files.
-3. Commit with: `Deploy Turn the Tide 2.0.1-dev`
-4. Push origin.
-5. Netlify deploys automatically.
+1. Copy all package contents into the cloned repository.
+2. Commit with `Deploy Turn the Tide 3.0.0-dev`.
+3. Push to `main`.
+4. Netlify will deploy automatically.
