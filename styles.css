@@ -1303,3 +1303,131 @@ strong{font-weight:650}
  .inventory-title-line{align-items:flex-start;flex-direction:column;gap:5px}
  .inventory-title-line h3{white-space:normal}
 }
+
+
+/* ================================================================
+   Turn the Tide 3.1 — deliberate navigation and interaction refresh
+   ================================================================ */
+
+/* Lighter hierarchy */
+body{font-weight:400!important}
+.home-welcome h2{font-weight:620!important}
+.home-action-card h2,
+.card h2,
+.section-heading h2,
+.page-intro h2,
+.brand h1{font-weight:620!important}
+.metric strong{font-weight:620!important}
+button{font-weight:550!important}
+strong{font-weight:620!important}
+
+/* Five-item primary navigation */
+.bottom-nav{
+ grid-template-columns:repeat(5,1fr)!important;
+}
+.bottom-nav button{
+ min-width:0!important;
+}
+.bottom-nav small{
+ font-size:.62rem!important;
+ white-space:nowrap;
+}
+
+/* Home quick actions */
+.home-quick-actions{
+ display:grid;
+ grid-template-columns:repeat(3,minmax(0,1fr));
+ gap:8px;
+ margin:8px 0 12px;
+}
+.home-quick-actions button{
+ display:flex;
+ flex-direction:column;
+ align-items:center;
+ justify-content:center;
+ gap:7px;
+ min-height:76px;
+ border:1px solid var(--theme-line);
+ border-radius:18px;
+ background:var(--theme-surface);
+ color:var(--theme-text);
+ box-shadow:0 5px 16px rgba(31,37,44,.045);
+}
+.home-quick-actions .line-icon{
+ width:21px;
+ height:21px;
+ opacity:.86;
+}
+.home-quick-actions span:last-child{
+ font-size:.72rem;
+}
+
+/* Inline high-value actions */
+.unlock-list{
+ display:grid;
+ gap:10px;
+}
+.unlock-card{
+ display:grid;
+ gap:12px;
+ padding:15px;
+ border:1px solid var(--theme-line);
+ border-radius:17px;
+ background:var(--theme-surface);
+ box-shadow:0 4px 14px rgba(31,37,44,.04);
+}
+.unlock-copy{
+ display:grid;
+ gap:3px;
+}
+.unlock-copy strong{
+ font-size:.94rem;
+}
+.unlock-copy small{
+ color:var(--theme-muted);
+ font-size:.73rem;
+}
+.unlock-inline-actions{
+ display:grid;
+ grid-template-columns:1fr 1fr;
+ gap:8px;
+}
+.unlock-inline-actions button{
+ min-height:40px;
+ border-radius:12px;
+ padding:0 10px;
+ border:1px solid var(--theme-line);
+ background:var(--theme-bg);
+ color:var(--theme-text);
+ font-size:.72rem;
+}
+.unlock-inline-actions button:last-child{
+ background:var(--theme-accent-soft);
+ color:var(--theme-text);
+}
+
+/* More compact inventory editing */
+.inventory-edit-button{
+ font-weight:550!important;
+}
+
+/* Menu readability */
+.menu-submenu summary{
+ font-weight:620!important;
+}
+.menu-link-stack button,
+.theme-choice{
+ font-weight:550!important;
+}
+
+@media(max-width:420px){
+ .home-quick-actions{
+  gap:6px;
+ }
+ .home-quick-actions button{
+  min-height:70px;
+ }
+ .unlock-inline-actions{
+  grid-template-columns:1fr;
+ }
+}

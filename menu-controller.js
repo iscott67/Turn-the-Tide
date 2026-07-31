@@ -38,14 +38,19 @@
         closeMenu();
         if (typeof window.showView === "function") {
           window.showView(viewId);
-        } else {
-          document.querySelectorAll(".view").forEach(view => view.classList.toggle("active", view.id === viewId));
-          window.scrollTo({top:0, behavior:"smooth"});
+          return;
         }
+        document.querySelectorAll(".view").forEach(view => {
+          view.classList.toggle("active", view.id === viewId);
+        });
+        document.querySelectorAll(".bottom-nav button").forEach(button => {
+          button.classList.toggle("active", button.dataset.go === viewId);
+        });
+        window.scrollTo({top:0, behavior:"smooth"});
       });
     });
 
-        panel.querySelectorAll("[data-menu-section]").forEach(item => {
+    panel.querySelectorAll("[data-menu-section]").forEach(item => {
       item.addEventListener("click", () => {
         closeMenu();
         const target = document.getElementById(item.dataset.menuSection);

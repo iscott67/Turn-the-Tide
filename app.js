@@ -132,15 +132,14 @@ function clearScanProgress(){
 window.showView=function showView(id){
  const target=document.getElementById(id);
  if(!target)return;
- document.querySelectorAll(".view").forEach(v=>v.classList.toggle("active",v===target));
- document.querySelectorAll(".bottom-nav button").forEach(b=>{
-  const active=b.dataset.go===id;
-  b.classList.toggle("active",active);
-  b.setAttribute("aria-current",active?"page":"false");
+ document.querySelectorAll(".view").forEach(view=>view.classList.toggle("active",view===target));
+ document.querySelectorAll(".bottom-nav button").forEach(button=>{
+  const active=button.dataset.go===id;
+  button.classList.toggle("active",active);
+  button.setAttribute("aria-current",active?"page":"false");
  });
  window.scrollTo({top:0,behavior:window.matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"});
- requestAnimationFrame(()=>target.querySelector("h2")?.setAttribute("tabindex","-1"));
-}
+};
 document.querySelectorAll("[data-go]").forEach(b=>b.addEventListener("click",()=>showView(b.dataset.go)));
 
 function calculateUnlocks(){
@@ -225,8 +224,8 @@ function openItemDialog(item=null){itemDialogTitle.textContent=item?"Edit item":
 itemForm.addEventListener("submit",e=>{e.preventDefault();const id=itemId.value;const data={id:id||crypto.randomUUID(),name:itemName.value.trim(),brand:itemBrand.value.trim(),type:itemType.value,status:itemStatus.value,notes:itemNotes.value.trim()};if(!data.name)return;const ix=inventory.findIndex(x=>x.id===id);if(ix>=0)inventory[ix]=data;else inventory.push(data);itemDialog.close();save()});
 deleteItemBtn.onclick=()=>{const id=itemId.value;if(id&&confirm("Delete this inventory item?")){inventory=inventory.filter(x=>x.id!==id);itemDialog.close();save()}};
 addManualBtn.onclick=()=>openItemDialog();
-itemDialogClose.onclick=()=>itemDialog.close();
-itemDialog.addEventListener("click",event=>{if(event.target===itemDialog)itemDialog.close()});
+itemDialogClose?.addEventListener("click",()=>itemDialog.close());
+itemDialog?.addEventListener("click",event=>{if(event.target===itemDialog)itemDialog.close()});
 inventorySearch.oninput=renderInventory;
 inventoryFilter.onchange=renderInventory;
 
@@ -340,10 +339,16 @@ function renderBarIQ(){
  programmeScores.innerHTML=iq.coverage.map(x=>`<div class="programme-row"><strong>${x.name}</strong><div class="bar-track"><div class="bar-fill" style="width:${x.score}%"></div></div><span>${x.score}</span></div>`).join("");
  const unlocks=calculateUnlocks().slice(0,8);
  unlockList.innerHTML=unlocks.length?unlocks.map(x=>`
-  <button class="unlock-row unlock-tile" type="button" onclick="openUnlockAction('${escapeHtml(x.key)}',${x.gain})">
-   <span><strong>${titleCase(x.key)}</strong><small>Unlocks ${x.gain} additional cocktails</small></span>
-   <span class="unlock-chevron">›</span>
-  </button>`).join(""):`<div class="unlock-row">No single missing ingredient unlocks an additional recipe.</div>`
+  <article class="unlock-card">
+   <div class="unlock-copy">
+    <strong>${titleCase(x.key)}</strong>
+    <small>Unlocks ${x.gain} additional cocktails</small>
+   </div>
+   <div class="unlock-inline-actions">
+    <button type="button" onclick="markUnlockOwned('${escapeHtml(x.key)}',${x.gain})">Already have</button>
+    <button type="button" onclick="addUnlockToShopping('${escapeHtml(x.key)}',${x.gain})">Shopping list</button>
+   </div>
+  </article>`).join(""):`<div class="unlock-row">No single missing ingredient unlocks an additional recipe.</div>`
  renderInventoryAnalysis();
 }
 
@@ -746,6 +751,35 @@ window.openHistoryDetail=date=>{
 };
 
 
+
+window.markUnlockOwned=(key,gain)=>{
+ const name=titleCase(key);
+ const existing=inventory.some(item=>[item.name,item.brand,item.type].join(" ").toLowerCase().includes(key.toLowerCase()));
+ if(!existing){
+  inventory.push({
+   id:crypto.randomUUID(),
+   name,
+   brand:"",
+   type:guessInventoryType(key),
+   status:"good",
+   notes:"Added from Bar IQ"
+  });
+  save();
+  showToast(`${name} added to My Bar.`);
+ }else{
+  showToast(`${name} is already in My Bar.`);
+ }
+};
+
+window.addUnlockToShopping=(key,gain)=>{
+ const name=titleCase(key);
+ if(!wishlist.some(item=>item.name.toLowerCase()===name.toLowerCase())){
+  wishlist.push({name,reason:`High-value addition · unlocks ${gain} cocktails`});
+  save();
+ }
+ showToast(`${name} added to the shopping list.`);
+};
+
 let activeUnlockIngredient=null;
 
 window.openUnlockAction=(key,gain)=>{
@@ -806,7 +840,7 @@ function guessInventoryType(key){
 
 function renderAll(){renderDashboard();renderInventory();renderShopping();renderBarIQ();renderRecommendationControls();renderTaste();renderStaplesMenu()}
 
-const APP_VERSION="3.0.1-dev";
+const APP_VERSION="3.1.0-dev";
 const APP_STORAGE_KEYS=[
  STORAGE_KEY,WISHLIST_KEY,TASTE_KEY,HISTORY_KEY,FAV_KEY,MANUAL_PREF_KEY,FEEDBACK_KEY,
  "ttt_phase2_mood","ttt_phase2_occasion","ttt_phase2_strength",STAPLES_KEY,"ttt_theme"

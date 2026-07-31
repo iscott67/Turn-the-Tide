@@ -1,22 +1,35 @@
 # Turn the Tide Release Notes
 
-## 3.0.1-dev
+## 3.1.0-dev — navigation and Bar IQ refresh
 
-### Bar IQ and shopping
-- High-value additions are now interactive.
-- Tap an addition to mark it as already owned or add it to the shopping list.
-- “Already have it” creates an editable inventory record and recalculates availability immediately.
-- “Add to shopping list” adds the bottle to the existing Purchase List & Wishlist screen.
-- Added Bar & Shopping shortcuts inside the hamburger menu.
+### Primary navigation
+- Rebuilt bottom navigation around five persistent destinations:
+  - Home
+  - Scan
+  - My Bar
+  - Taste
+  - Bar IQ
+- Removed Tonight as a separate tab. It remains the main action on Home.
+- Added Home quick actions for Scan Shelf, Shopping List and Choose a Drink.
 
-### Inventory
-- Removed the redundant status-cycle button from each inventory row.
-- Retained a compact status badge and one clear Edit action.
-- Improved name, type, brand and status spacing.
-- Reduced heavy font weights across headings, controls and cards.
+### Bar IQ
+- Replaced non-responsive high-value tiles with direct inline actions.
+- Each suggested addition now includes:
+  - Already have
+  - Shopping list
+- No modal is required for these common actions.
+- “Already have” adds the ingredient to inventory and recalculates the app.
+- “Shopping list” adds the item to the existing Purchase List & Wishlist.
 
-### Reliability and navigation
-- Fixed the Inventory Add Item dialog close control.
-- Added backdrop dismissal for the inventory and high-value-addition dialogs.
-- Confirmed Scan remains available as the centre Scan item in bottom navigation.
-- Added Scan a Shelf to the hamburger menu for easier discovery.
+### Hamburger menu
+- Bar & Shopping opens by default and includes:
+  - My Inventory
+  - Scan a Shelf
+  - Shopping List
+  - Bar IQ
+- Strengthened menu navigation if the main application script has not yet fully initialized.
+
+### UI
+- Reduced heavy font weights again.
+- Improved quick-action and high-value-addition spacing for mobile.
+- Retained the inventory row cleanup and reliable Add Item close control.

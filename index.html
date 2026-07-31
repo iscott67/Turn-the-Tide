@@ -8,7 +8,7 @@
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icons/favicon.png">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
-  <link rel="stylesheet" href="styles.css?v=3.0.1-dev">
+  <link rel="stylesheet" href="styles.css?v=3.1.0-dev">
   <title>Turn the Tide | Home Bar Companion</title>
 </head>
 <body>
@@ -48,6 +48,11 @@
           <article class="metric"><strong id="dashLow">0</strong><span>Ready now</span></article>
           <article class="metric"><strong id="dashReplace">0</strong><span>Within reach</span></article>
           <article class="metric"><strong id="dashIQ">0</strong><span>Bar score</span></article>
+        </section>
+        <section class="home-quick-actions" aria-label="Quick actions">
+          <button type="button" data-go="scanView"><span class="line-icon icon-camera"></span><span>Scan shelf</span></button>
+          <button type="button" data-go="shoppingView"><span class="line-icon icon-cart"></span><span>Shopping list</span></button>
+          <button type="button" data-go="recommendView"><span class="line-icon icon-compass"></span><span>Choose a drink</span></button>
         </section>
 
         <section id="dashboardInsightCard" class="card">
@@ -362,7 +367,7 @@
           </div>
           <div class="about-meta-grid">
             <div><small>Application</small><strong>Turn the Tide</strong></div>
-            <div><small>Version</small><strong>3.0.1-dev</strong></div>
+            <div><small>Version</small><strong>3.1.0-dev</strong></div>
             <div><small>Recipe library</small><strong>140 recipes</strong></div>
             <div><small>Recipe data</small><strong>2026.07</strong></div>
             <div><small>Platform</small><strong>Progressive Web App</strong></div>
@@ -372,7 +377,7 @@
 
         <section id="releaseNotesSection" class="card menu-target">
           <span class="eyebrow">Release notes</span>
-          <h2>Atlantic Edition 3.0.1-dev</h2>
+          <h2>Atlantic Edition 3.1.0-dev</h2>
           <ul class="about-list">
             <li>Completed the 140-recipe mobile library.</li>
             <li>Added exact imperial and metric quantities.</li>
@@ -426,14 +431,23 @@
 
     </main>
 
-    <nav class="bottom-nav">
-      <button class="active" data-go="dashboardView"><span class="line-icon icon-home"></span><small>Home</small></button>
-      <button data-go="recommendView"><span class="line-icon icon-compass"></span><small>Tonight</small></button>
-      <button data-go="scanView"><span class="line-icon icon-camera"></span><small>Scan</small></button>
-      <button data-go="inventoryView"><span class="line-icon icon-bottle"></span><small>My Bar</small></button>
-      <button data-go="tasteView"><span class="line-icon icon-heart"></span><small>Taste</small></button>
-      <button data-go="barIqView"><span class="line-icon icon-chart"></span><small>Bar IQ</small></button>
-    </nav>
+    <nav class="bottom-nav" aria-label="Primary">
+    <button data-go="dashboardView" class="active">
+      <span class="line-icon icon-home"></span><small>Home</small>
+    </button>
+    <button data-go="scanView">
+      <span class="line-icon icon-camera"></span><small>Scan</small>
+    </button>
+    <button data-go="inventoryView">
+      <span class="line-icon icon-bottle"></span><small>My Bar</small>
+    </button>
+    <button data-go="tasteView">
+      <span class="line-icon icon-heart"></span><small>Taste</small>
+    </button>
+    <button data-go="barIqView">
+      <span class="line-icon icon-chart"></span><small>Bar IQ</small>
+    </button>
+  </nav>
   </div>
 
 
@@ -448,7 +462,7 @@
     </div>
 
     <nav class="app-menu-links">
-      <details class="menu-submenu">
+      <details class="menu-submenu" open>
         <summary>Bar & Shopping</summary>
         <div class="menu-submenu-body menu-link-stack">
           <button type="button" data-menu-go="inventoryView">My Inventory</button>
@@ -499,7 +513,7 @@
     </nav>
 
     <div class="app-menu-footer">
-      <strong>Turn the Tide 3.0.1-dev</strong>
+      <strong>Turn the Tide 3.1.0-dev</strong>
       <small>Recipe data 2026.07</small>
     </div>
   </aside>
@@ -599,7 +613,7 @@
     </form>
   </dialog>
 
-  <script src="menu-controller.js?v=3.0.1-dev"></script>
-  <script src="app.js?v=3.0.1-dev"></script>
+  <script src="menu-controller.js?v=3.1.0-dev"></script>
+  <script src="app.js?v=3.1.0-dev"></script>
 </body>
 </html>
