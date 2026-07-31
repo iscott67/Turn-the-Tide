@@ -1,0 +1,17 @@
+TURN THE TIDE
+Product concept
+
+Turn the Tide is a personal cocktail companion that recommends the right drink for the moment. It considers what is in the user's bar, taste history, time, weather, location, mood, occasion and desired strength, then returns three curated suggestions rather than an endless recipe list.
+
+Core interaction
+1. Add bottles and ingredients by photo or list.
+2. Select a mood or occasion.
+3. Receive three recommendations with reasons.
+4. Rate the result: House Favourite, Make Again, Occasionally or Not for Me.
+5. Use Turn the Tide to deliberately change direction.
+
+MVP success test
+Users return at least twice per week and report that the top three feel more relevant over time.
+
+Commercial options
+Freemium subscription, premium personalization, retailer integrations, and hospitality white-labelling. Sponsored recommendations should be clearly disclosed and kept separate from organic rankings.

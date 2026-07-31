@@ -1,0 +1,510 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#0E4B52">
+  <meta name="description" content="Turn the Tide personal bar manager">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/favicon.png">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="styles.css?v=1.0.0-dev">
+  <title>Turn the Tide | My Bar</title>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand">
+        <img src="icons/icon-192.png" class="brand-icon" alt="">
+        <div>
+          <h1>Turn the Tide</h1>
+          <p>Personal AI bartender</p>
+        </div>
+      </div>
+      <button id="menuBtn" class="menu-button" type="button" aria-label="Open menu" aria-controls="appMenu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </header>
+
+    <main>
+      <section id="dashboardView" class="view active">
+        <section class="hero-card">
+          <div>
+            <span class="eyebrow light">Your bar today</span>
+            <h2>A smarter cabinet, not a bigger one.</h2>
+            <p id="dashboardSummary">Scan your shelves, tell us what you enjoy and let Turn the Tide choose the right drink for the moment.</p>
+          </div>
+          <div class="hero-actions"><button class="primary gold" data-go="recommendView">Choose tonight’s drink</button></div>
+        </section>
+
+        <section class="metric-grid">
+          <article class="metric"><strong id="dashItems">0</strong><span>Items</span></article>
+          <article class="metric"><strong id="dashLow">0</strong><span>Running low</span></article>
+          <article class="metric"><strong id="dashReplace">0</strong><span>Replace</span></article>
+          <article class="metric"><strong id="dashIQ">0</strong><span>Bar IQ</span></article>
+        </section>
+
+        <section id="dashboardInsightCard" class="card">
+          <div class="section-heading">
+            <div><span class="eyebrow">Today's insight</span><h2 id="insightTitle">Build your first inventory</h2></div>
+            <span class="line-icon icon-bulb" aria-hidden="true"></span>
+          </div>
+          <p id="insightBody">A multi-photo scan will identify visible bottles, estimate status and ask you to confirm uncertain matches.</p>
+          <button id="insightAction" class="secondary" data-go="scanView">Start inventory scan</button>
+        </section>
+
+        <section id="dashboardPurchaseCard" class="card">
+          <div class="section-heading">
+            <div><span class="eyebrow">Purchase list</span><h2>What needs attention</h2></div>
+            <button class="text-btn" data-go="shoppingView">View all</button>
+          </div>
+          <div id="dashboardPurchaseList" class="compact-list"></div>
+        </section>
+
+        <section id="dashboardRecentCard" class="card">
+          <div class="section-heading">
+            <div><span class="eyebrow">Recently added</span><h2>Your latest bottles</h2></div>
+            <button class="text-btn" data-go="inventoryView">Edit inventory</button>
+          </div>
+          <div id="recentInventory" class="bottle-grid"></div>
+        </section>
+      </section>
+
+      <section id="scanView" class="view">
+        <section class="page-intro">
+          <button class="back-btn" data-go="dashboardView">←</button>
+          <div><span class="eyebrow light">AI multi-photo scan</span><h2>Photograph the whole bar</h2></div>
+        </section>
+
+        <section class="card scan-guide">
+          <h3>For the best result</h3>
+          <ol>
+            <li>Take three to eight overlapping photographs.</li>
+            <li>Move left to right, then photograph upper and lower shelves.</li>
+            <li>Keep labels as square to the camera as possible.</li>
+            <li>Confirm every result before adding it to inventory.</li>
+          </ol>
+          <div class="overlap-diagram" aria-label="Overlapping photo guide">
+            <span>1</span><span>2</span><span>3</span>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="section-heading">
+            <div><span class="eyebrow">Photo set</span><h2 id="photoCountLabel">No photos added</h2></div>
+            <button id="clearPhotos" class="text-btn">Clear</button>
+          </div>
+          <label class="camera-button">
+            <span class="line-icon icon-camera"></span>
+            Add overlapping photos
+            <input id="barPhotos" type="file" accept="image/*" capture="environment" multiple>
+          </label>
+          <div id="photoStrip" class="photo-strip"></div>
+          <button id="analysePhotos" class="primary wide" disabled>Analyse photo set</button>
+          <p id="scanStatus" class="status-text"></p>
+        </section>
+
+        <section id="scanResultsCard" class="card hidden">
+          <div class="section-heading">
+            <div><span class="eyebrow">Review results</span><h2>Confirm your inventory</h2></div>
+            <span id="scanResultCount" class="count-badge">0</span>
+          </div>
+          <p class="helper">AI recognition is probabilistic. Correct brands, product names, types and status before saving.</p>
+          <div id="scanCandidates"></div>
+          <div class="button-row">
+            <button id="addCandidateRow" class="secondary">Add missed item</button>
+            <button id="saveScanResults" class="primary">Add confirmed items</button>
+          </div>
+        </section>
+      </section>
+
+      
+      <section id="recommendView" class="view">
+        <section class="page-intro">
+          <button class="back-btn" data-go="dashboardView">←</button>
+          <div><span class="eyebrow light">Tonight</span><h2>The right drink for the moment</h2></div>
+        </section>
+
+        <section class="card">
+          <span class="eyebrow">Mood</span>
+          <h2>How are you feeling?</h2>
+          <div id="moodGrid" class="choice-grid"></div>
+        </section>
+
+        <section class="card">
+          <span class="eyebrow">Occasion</span>
+          <h2>What kind of evening is this?</h2>
+          <div id="occasionGrid" class="choice-grid"></div>
+          <label class="strength-control">Strength
+            <select id="strengthSelect">
+              <option value="any">Any strength</option>
+              <option value="low">Low</option>
+              <option value="medium">Medium</option>
+              <option value="strong">Strong</option>
+            </select>
+          </label>
+        </section>
+
+        <section>
+          <div class="section-heading recommendation-heading">
+            <div><span class="eyebrow light">Top three</span><h2>For this moment</h2></div>
+            <button id="surpriseBtn" class="ghost">Surprise me</button>
+          </div>
+          <div id="recommendationCards" class="recommendation-list"></div>
+          <button id="turnTideBtn" class="primary gold wide">Turn the Tide</button>
+        </section>
+      </section>
+
+      <section id="tasteView" class="view">
+        <section class="page-intro">
+          <button class="back-btn" data-go="dashboardView">←</button>
+          <div><span class="eyebrow light">Your palate</span><h2>Learn My Taste</h2></div>
+        </section>
+
+        <section class="taste-summary-grid">
+          <article class="card taste-summary-card">
+            <span class="eyebrow">Confidence</span>
+            <strong id="tasteConfidence">0%</strong>
+            <small id="tasteConfidenceLabel">Not enough history yet</small>
+          </article>
+          <article class="card taste-summary-card">
+            <span class="eyebrow">Cocktails rated</span>
+            <strong id="ratedCount">0</strong>
+            <small>Across all sessions</small>
+          </article>
+          <article class="card taste-summary-card">
+            <span class="eyebrow">House favourites</span>
+            <strong id="favouriteCount">0</strong>
+            <small>Your proven drinks</small>
+          </article>
+        </section>
+
+        <section class="card">
+          <div class="section-heading">
+            <div><span class="eyebrow">Taste map</span><h2>What the app has learned</h2></div>
+            <button id="resetTasteBtn" class="text-btn">Reset learning</button>
+          </div>
+          <div id="tasteRadar" class="taste-radar"></div>
+          <div id="tasteProfile" class="taste-profile"></div>
+          <p id="tasteNarrative" class="helper"></p>
+        </section>
+
+        <section class="card">
+          <div class="section-heading">
+            <div><span class="eyebrow">Palate controls</span><h2>Tell us directly</h2></div>
+          </div>
+          <p class="helper">Adjust these only when the app has learned something incorrectly. Ratings still carry the most weight.</p>
+          <div id="preferenceSliders" class="preference-sliders"></div>
+        </section>
+
+        <section class="card">
+          <div class="section-heading">
+            <div><span class="eyebrow">House Favourites</span><h2>Your proven drinks</h2></div>
+            <button class="text-btn" data-go="recommendView">Use in recommendations</button>
+          </div>
+          <div id="favouritesList" class="compact-list"></div>
+        </section>
+
+        <section class="card">
+          <div class="section-heading">
+            <div><span class="eyebrow">Learning journal</span><h2>Recent cocktail history</h2></div>
+            <select id="historyFilter">
+              <option value="all">All ratings</option>
+              <option value="house-favourite">House Favourites</option>
+              <option value="worth-exploring">Worth Exploring</option>
+              <option value="not-for-me">Not for Me</option>
+            </select>
+          </div>
+          <div id="recentRatings" class="compact-list"></div>
+        </section>
+
+        <section class="card">
+          <span class="eyebrow">What to try next</span>
+          <h2 id="tasteNextTitle">Rate a few cocktails first</h2>
+          <p id="tasteNextReason">The app will identify a useful next experiment once it has enough information.</p>
+          <button id="tasteNextBtn" class="secondary" data-go="recommendView">Find tonight's drink</button>
+        </section>
+      </section>
+
+      <section id="inventoryView" class="view">
+        <section class="page-intro">
+          <button class="back-btn" data-go="dashboardView">←</button>
+          <div><span class="eyebrow light">My Bar</span><h2>Inventory</h2></div>
+        </section>
+
+        <section class="card">
+          <div class="inventory-toolbar">
+            <label class="search-box"><span class="line-icon icon-search"></span><input id="inventorySearch" placeholder="Search bottles and ingredients"></label>
+            <select id="inventoryFilter" aria-label="Filter inventory">
+              <option value="all">All status</option>
+              <option value="good">Good</option>
+              <option value="low">Running low</option>
+              <option value="replace">Need to replace</option>
+            </select>
+            <button id="addManualBtn" class="primary compact">Add item</button>
+          </div>
+          <div id="inventoryList" class="inventory-list"></div>
+        </section>
+      </section>
+
+      <section id="shoppingView" class="view">
+        <section class="page-intro">
+          <button class="back-btn" data-go="dashboardView">←</button>
+          <div><span class="eyebrow light">Shopping</span><h2>Purchase list & wishlist</h2></div>
+        </section>
+
+        <section class="card">
+          <div class="section-heading">
+            <div><span class="eyebrow">Automatic list</span><h2>Replace or replenish</h2></div>
+            <span class="line-icon icon-cart"></span>
+          </div>
+          <div id="purchaseList" class="shopping-list"></div>
+        </section>
+
+        <section class="card">
+          <div class="section-heading">
+            <div><span class="eyebrow">Wishlist</span><h2>Bottles to consider</h2></div>
+            <button id="addWishlistBtn" class="text-btn">Add bottle</button>
+          </div>
+          <div id="wishlistList" class="shopping-list"></div>
+        </section>
+
+        <section class="card">
+          <span class="eyebrow">Best next bottle</span>
+          <h2 id="bestNextBottle">Build your inventory first</h2>
+          <p id="bestNextReason">Bar IQ will estimate which addition unlocks the most useful new cocktails without duplicating your collection.</p>
+        </section>
+      </section>
+
+      <section id="barIqView" class="view">
+        <section class="page-intro">
+          <button class="back-btn" data-go="dashboardView">←</button>
+          <div><span class="eyebrow light">Bar IQ</span><h2>What your bar can do</h2></div>
+        </section>
+
+        <section class="iq-hero card">
+          <div class="score-ring"><strong id="barIqScore">0</strong><span>/100</span></div>
+          <div>
+            <span class="eyebrow">Overall capability</span>
+            <h2 id="barIqLabel">Not yet assessed</h2>
+            <p id="barIqSummary">Add or scan your inventory to calculate coverage, balance and purchasing leverage.</p>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="section-heading"><div><span class="eyebrow">Coverage</span><h2>Bar programmes</h2></div></div>
+          <div id="programmeScores" class="programme-list"></div>
+        </section>
+
+        <section class="card">
+          <div class="section-heading"><div><span class="eyebrow">Unlock analysis</span><h2>High-value additions</h2></div></div>
+          <div id="unlockList" class="unlock-list"></div>
+        </section>
+      </section>
+
+      <section id="aboutView" class="view">
+        <section class="page-intro">
+          <button class="back-btn" data-go="dashboardView">←</button>
+          <div><span class="eyebrow light">Turn the Tide</span><h2>About & support</h2></div>
+        </section>
+
+        <section id="aboutSection" class="card about-hero-card menu-target">
+          <span class="eyebrow light">About Turn the Tide</span>
+          <h2>The right drink for the moment.</h2>
+          <p>Turn the Tide is a personal AI bartender for the home enthusiast. It helps you understand what your bar can make, choose a cocktail for the occasion and gradually learn your taste.</p>
+          <p>Rather than functioning as a conventional recipe search engine, it combines inventory, context and preference to make a small number of useful recommendations.</p>
+        </section>
+
+        <section id="versionSection" class="card menu-target">
+          <div class="section-heading">
+            <div><span class="eyebrow">Version</span><h2>Build information</h2></div>
+            <span class="version-badge">Development</span>
+          </div>
+          <div class="about-meta-grid">
+            <div><small>Application</small><strong>Turn the Tide</strong></div>
+            <div><small>Version</small><strong>1.0.0-dev</strong></div>
+            <div><small>Recipe library</small><strong>140 recipes</strong></div>
+            <div><small>Recipe data</small><strong>2026.07</strong></div>
+            <div><small>Platform</small><strong>Progressive Web App</strong></div>
+            <div><small>Deployment</small><strong>Netlify</strong></div>
+          </div>
+        </section>
+
+        <section id="releaseNotesSection" class="card menu-target">
+          <span class="eyebrow">Release notes</span>
+          <h2>Version 1.0.0-dev</h2>
+          <ul class="about-list">
+            <li>Completed the 140-recipe mobile library.</li>
+            <li>Added exact imperial and metric quantities.</li>
+            <li>Added preparation, glassware, ice, garnish and substitution guidance.</li>
+            <li>Distinguished established recipes, house variations and original house recipes.</li>
+            <li>Added AI-assisted inventory scanning, Tonight recommendations, Taste and Bar IQ.</li>
+            <li>Added a mobile hamburger menu, About, Privacy, Responsible Use, Help and app-data controls.</li>
+          </ul>
+        </section>
+
+        <section id="privacySection" class="card menu-target">
+          <span class="eyebrow">Privacy</span>
+          <h2>Your information</h2>
+          <p>Inventory, favourites, preferences and cocktail history are stored locally in this browser. They are not synchronized to another device and may be lost if browser data is cleared.</p>
+          <p>Photographs selected for bottle recognition are sent to the configured AI service through the app's Netlify Function for analysis. Do not include people, private documents or unrelated personal information in bar photographs.</p>
+          <p class="helper">This alpha build does not yet include user accounts, cloud backup or cross-device synchronization.</p>
+        </section>
+
+        <section id="responsibleUseSection" class="card menu-target">
+          <span class="eyebrow">Responsible use</span>
+          <h2>Enjoy responsibly</h2>
+          <p>Turn the Tide is intended only for adults of legal drinking age. Recommendations are for recipe and entertainment purposes and are not a measure of safe alcohol consumption.</p>
+          <p>Never drink and drive. Do not serve alcohol to minors or anyone who should not consume it for medical, legal or personal reasons.</p>
+        </section>
+
+        <section id="helpSection" class="card menu-target">
+          <span class="eyebrow">Help</span>
+          <h2>Quick guide</h2>
+          <div class="help-grid">
+            <div><strong>Build your bar</strong><p>Use Scan for overlapping shelf photos, then correct every detected item before saving.</p></div>
+            <div><strong>Choose a drink</strong><p>Open Tonight, select mood, occasion and strength, then review the top three suggestions.</p></div>
+            <div><strong>Teach your taste</strong><p>Rate drinks after making them. Detailed feedback improves later recommendations.</p></div>
+            <div><strong>Install the app</strong><p>Use Install App in the menu when supported. On iPhone, use Safari's Add to Home Screen command.</p></div>
+          </div>
+        </section>
+
+        <section id="resetSection" class="card danger-zone menu-target">
+          <span class="eyebrow">Administrative</span>
+          <h2>Reset app data</h2>
+          <p>This permanently removes inventory, wishlist, ratings, favourites, taste learning and saved recommendation settings from this device.</p>
+          <button id="resetAppDataBtn" class="danger" type="button">Reset all app data</button>
+        </section>
+
+        <section class="card">
+          <span class="eyebrow">Credits</span>
+          <p><strong>Created by Ian Scott</strong></p>
+          <p>AI-assisted development with OpenAI ChatGPT.</p>
+          <p class="helper">Established cocktail specifications are identified where applicable. Atlantic Canadian cocktails and other original adaptations are designated Turn the Tide house recipes.</p>
+        </section>
+      </section>
+
+    </main>
+
+    <nav class="bottom-nav">
+      <button class="active" data-go="dashboardView"><span class="line-icon icon-home"></span><small>Home</small></button>
+      <button data-go="recommendView"><span class="line-icon icon-compass"></span><small>Tonight</small></button>
+      <button data-go="scanView"><span class="line-icon icon-camera"></span><small>Scan</small></button>
+      <button data-go="inventoryView"><span class="line-icon icon-bottle"></span><small>My Bar</small></button>
+      <button data-go="tasteView"><span class="line-icon icon-heart"></span><small>Taste</small></button>
+      <button data-go="barIqView"><span class="line-icon icon-chart"></span><small>Bar IQ</small></button>
+    </nav>
+  </div>
+
+
+  <div id="menuScrim" class="menu-scrim" hidden></div>
+  <aside id="appMenu" class="app-menu" aria-hidden="true" aria-label="Turn the Tide menu">
+    <div class="app-menu-header">
+      <div>
+        <span class="eyebrow light">Turn the Tide</span>
+        <h2>Menu</h2>
+      </div>
+      <button id="menuCloseBtn" class="menu-close" type="button" aria-label="Close menu">×</button>
+    </div>
+
+    <nav class="app-menu-links">
+      <span class="menu-group-label">Information</span>
+      <button type="button" data-menu-section="aboutSection">About</button>
+      <button type="button" data-menu-section="releaseNotesSection">What’s New</button>
+      <button type="button" data-menu-section="privacySection">Privacy</button>
+      <button type="button" data-menu-section="responsibleUseSection">Responsible Use</button>
+      <button type="button" data-menu-section="helpSection">Help</button>
+
+      <span class="menu-group-label menu-group-spaced">App</span>
+      <button id="menuInstallBtn" type="button" class="hidden">Install App</button>
+      <button type="button" class="menu-danger-link" data-menu-section="resetSection">Reset App Data</button>
+    </nav>
+
+    <div class="app-menu-footer">
+      <strong>Turn the Tide v1.0.0-dev</strong>
+      <small>Recipe data 2026.07</small>
+    </div>
+  </aside>
+
+
+  <dialog id="itemDialog">
+    <form method="dialog" class="dialog-card" id="itemForm">
+      <button class="dialog-close" value="cancel" aria-label="Close">×</button>
+      <span class="eyebrow">Inventory item</span>
+      <h2 id="itemDialogTitle">Add item</h2>
+      <input type="hidden" id="itemId">
+      <label>Product name<input id="itemName" required placeholder="e.g. Luxardo Maraschino"></label>
+      <label>Brand<input id="itemBrand" placeholder="e.g. Luxardo"></label>
+      <label>Type
+        <select id="itemType">
+          <option>Gin</option><option>Tequila</option><option>Rum</option><option>Canadian whisky</option>
+          <option>Scotch</option><option>Irish whiskey</option><option>Brandy/Cognac</option><option>Vodka</option>
+          <option>Liqueur</option><option>Amaro/Aperitivo</option><option>Vermouth/Fortified wine</option>
+          <option>Bitters</option><option>Mixer</option><option>Fresh ingredient</option><option>Other</option>
+        </select>
+      </label>
+      <label>Status
+        <select id="itemStatus"><option value="good">Good</option><option value="low">Running low</option><option value="replace">Need to replace</option></select>
+      </label>
+      <label>Notes<textarea id="itemNotes" rows="3" placeholder="Optional"></textarea></label>
+      <div class="button-row">
+        <button id="deleteItemBtn" class="danger hidden" type="button">Delete</button>
+        <button class="primary" value="default">Save</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="wishlistDialog">
+    <form method="dialog" class="dialog-card" id="wishlistForm">
+      <button class="dialog-close" value="cancel" aria-label="Close">×</button>
+      <span class="eyebrow">Wishlist</span>
+      <h2>Add a bottle</h2>
+      <label>Bottle<input id="wishlistName" required placeholder="e.g. Amaro Nonino"></label>
+      <label>Why it interests you<input id="wishlistReason" placeholder="Optional"></label>
+      <button class="primary" value="default">Add to wishlist</button>
+    </form>
+  </dialog>
+
+
+  <dialog id="recipeDialog">
+    <form method="dialog" class="dialog-card">
+      <button class="dialog-close" value="cancel">×</button>
+      <div id="recipeDialogContent"></div>
+    </form>
+  </dialog>
+
+  <dialog id="ratingDialog">
+    <form method="dialog" class="dialog-card">
+      <button class="dialog-close" value="cancel">×</button>
+      <span class="eyebrow">Teach my taste</span>
+      <h2>How was it?</h2>
+      <textarea id="ratingNotes" rows="3" placeholder="Optional: too herbal, loved the citrus, needed more body…"></textarea>
+      <div class="quick-feedback">
+        <button type="button" data-feedback="too-sweet">Too sweet</button>
+        <button type="button" data-feedback="too-bitter">Too bitter</button>
+        <button type="button" data-feedback="too-herbal">Too herbal</button>
+        <button type="button" data-feedback="too-strong">Too strong</button>
+        <button type="button" data-feedback="loved-citrus">Loved the citrus</button>
+        <button type="button" data-feedback="loved-floral">Loved the floral notes</button>
+        <button type="button" data-feedback="loved-richness">Loved the richness</button>
+        <button type="button" data-feedback="serve-guests">Would serve to guests</button>
+      </div>
+      <label class="serve-guests-check"><input id="serveGuests" type="checkbox"> I would serve this to guests</label>
+      <div class="rating-grid">
+        <button type="button" class="secondary" onclick="submitRating(\'not-for-me\')">Not for me</button>
+        <button type="button" class="secondary" onclick="submitRating(\'worth-exploring\')">Worth exploring</button>
+        <button type="button" class="primary" onclick="submitRating(\'house-favourite\')">House Favourite</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="historyDetailDialog">
+    <form method="dialog" class="dialog-card">
+      <button class="dialog-close" value="cancel">×</button>
+      <div id="historyDetailContent"></div>
+    </form>
+  </dialog>
+
+  <script src="app.js?v=1.0.0-dev"></script>
+</body>
+</html>
