@@ -4,7 +4,7 @@ Turn the Tide is a mobile-first personal AI bartender for the home enthusiast.
 
 ## Current version
 
-**1.0.0-dev**
+**1.0.1-dev**
 
 This is the active development build. It includes:
 
@@ -59,3 +59,8 @@ After deployment, confirm that `analyze-bar` appears under **Logs & metrics → 
 3. Commit to `main`.
 4. Push to GitHub.
 5. Netlify will deploy automatically.
+
+
+## 1.0.1-dev focus
+
+This release is a polish build. It improves scanner feedback, button states, navigation feedback, mobile spacing and accessibility without adding new primary functions.

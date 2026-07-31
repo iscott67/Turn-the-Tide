@@ -8,7 +8,7 @@
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icons/favicon.png">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
-  <link rel="stylesheet" href="styles.css?v=1.0.0-dev">
+  <link rel="stylesheet" href="styles.css?v=1.0.1-dev">
   <title>Turn the Tide | My Bar</title>
 </head>
 <body>
@@ -101,7 +101,10 @@
           </label>
           <div id="photoStrip" class="photo-strip"></div>
           <button id="analysePhotos" class="primary wide" disabled>Analyse photo set</button>
-          <p id="scanStatus" class="status-text"></p>
+          <div id="scanProgress" class="scan-progress hidden" aria-hidden="true">
+            <span id="scanProgressBar"></span>
+          </div>
+          <p id="scanStatus" class="status-text" role="status" aria-live="polite"></p>
         </section>
 
         <section id="scanResultsCard" class="card hidden">
@@ -322,7 +325,7 @@
           </div>
           <div class="about-meta-grid">
             <div><small>Application</small><strong>Turn the Tide</strong></div>
-            <div><small>Version</small><strong>1.0.0-dev</strong></div>
+            <div><small>Version</small><strong>1.0.1-dev</strong></div>
             <div><small>Recipe library</small><strong>140 recipes</strong></div>
             <div><small>Recipe data</small><strong>2026.07</strong></div>
             <div><small>Platform</small><strong>Progressive Web App</strong></div>
@@ -332,7 +335,7 @@
 
         <section id="releaseNotesSection" class="card menu-target">
           <span class="eyebrow">Release notes</span>
-          <h2>Version 1.0.0-dev</h2>
+          <h2>Version 1.0.1-dev</h2>
           <ul class="about-list">
             <li>Completed the 140-recipe mobile library.</li>
             <li>Added exact imperial and metric quantities.</li>
@@ -421,11 +424,13 @@
     </nav>
 
     <div class="app-menu-footer">
-      <strong>Turn the Tide v1.0.0-dev</strong>
+      <strong>Turn the Tide v1.0.1-dev</strong>
       <small>Recipe data 2026.07</small>
     </div>
   </aside>
 
+
+  <div id="appToast" class="app-toast" role="status" aria-live="polite" aria-atomic="true"></div>
 
   <dialog id="itemDialog">
     <form method="dialog" class="dialog-card" id="itemForm">
@@ -505,6 +510,6 @@
     </form>
   </dialog>
 
-  <script src="app.js?v=1.0.0-dev"></script>
+  <script src="app.js?v=1.0.1-dev"></script>
 </body>
 </html>

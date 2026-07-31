@@ -197,3 +197,55 @@ body{-webkit-text-size-adjust:100%}
  .metric strong{font-size:1.7rem}
  .metric span{font-size:.72rem}
 }
+
+
+/* v1.0.1-dev interaction and mobile polish */
+button{
+ -webkit-tap-highlight-color:transparent;
+ touch-action:manipulation;
+}
+button:disabled{opacity:.55;cursor:not-allowed}
+.primary,.secondary,.ghost,.camera-button{
+ min-height:46px;
+}
+.primary.is-loading::before{
+ content:"";
+ width:16px;height:16px;border:2px solid currentColor;border-right-color:transparent;
+ border-radius:50%;display:inline-block;margin-right:9px;vertical-align:-3px;
+ animation:button-spin .75s linear infinite
+}
+@keyframes button-spin{to{transform:rotate(360deg)}}
+.scan-progress{
+ height:5px;margin-top:12px;background:#dce7e4;border-radius:999px;overflow:hidden
+}
+.scan-progress span{
+ display:block;height:100%;width:0;background:var(--teal);border-radius:inherit;
+ transition:width .24s ease
+}
+.app-toast{
+ position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom));
+ z-index:120;width:max-content;max-width:calc(100vw - 32px);
+ transform:translate(-50%,18px);opacity:0;pointer-events:none;
+ background:#072d30;color:#fff;border:1px solid #ffffff2b;border-radius:999px;
+ padding:11px 16px;font-size:.82rem;font-weight:750;box-shadow:0 12px 30px #00191c55;
+ transition:opacity .18s ease,transform .18s ease
+}
+.app-toast.show{opacity:1;transform:translate(-50%,0)}
+.status-text{min-height:1.3em;line-height:1.4}
+.bottom-nav button.active{position:relative}
+.bottom-nav button.active::after{
+ content:"";position:absolute;left:50%;bottom:1px;width:18px;height:2px;
+ transform:translateX(-50%);border-radius:999px;background:var(--gold)
+}
+.photo-thumb button{min-width:28px;min-height:28px}
+@media(max-width:650px){
+ main{padding-bottom:96px}
+ .topbar{padding-top:calc(14px + env(safe-area-inset-top))}
+ .page-intro{padding-top:6px}
+ .card+.card{margin-top:12px}
+ .scan-guide ol{padding-left:1.25rem}
+ .scan-guide li{margin:.42rem 0}
+}
+@media(prefers-reduced-motion:reduce){
+ *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;transition-duration:.01ms!important}
+}

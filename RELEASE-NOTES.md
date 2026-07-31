@@ -1,11 +1,14 @@
 # Turn the Tide Release Notes
 
-## Version 1.0.0-dev
+## Version 1.0.1-dev
 
-- Established the main development build for the path to Version 1.0.
-- Retained the minimalist mobile dashboard and six-item bottom navigation.
-- Retained the secondary hamburger menu for About, What’s New, Privacy, Responsible Use, Help, installation and data reset.
-- Standardized all visible and internal version references.
-- Retained image resizing and compression before AI scanning.
-- Retained explicit AI scanning errors rather than demonstration results.
-- Prepared the repository for GitHub-connected Netlify deployment.
+This build focuses on interaction quality rather than new features.
+
+- Added visible scan progress from image preparation through bottle identification.
+- Added clear loading and disabled states during scanning.
+- Added concise confirmation messages for saved inventory, wishlist additions and completed scans.
+- Improved bottom-navigation active-state feedback.
+- Improved mobile safe-area spacing and tap behaviour.
+- Added reduced-motion support.
+- Standardized all build and cache references to 1.0.1-dev.
+- Retained the minimalist home screen and GitHub-connected Netlify workflow.

@@ -87,10 +87,42 @@ function escapeHtml(s=""){return s.replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;
 function partOfDay(){const h=new Date().getHours();return h<12?"morning":h<17?"afternoon":h<21?"evening":"night"}
 function weatherGuess(){const m=new Date().getMonth()+1;return m>=6&&m<=9?"warm":"cool"}
 
+function showToast(message){
+ const toast=document.getElementById("appToast");
+ if(!toast)return;
+ toast.textContent=message;
+ toast.classList.add("show");
+ clearTimeout(showToast.timer);
+ showToast.timer=setTimeout(()=>toast.classList.remove("show"),2600);
+}
+function setScanProgress(percent,message){
+ const progress=document.getElementById("scanProgress");
+ const bar=document.getElementById("scanProgressBar");
+ progress.classList.remove("hidden");
+ progress.setAttribute("aria-hidden","false");
+ bar.style.width=`${Math.max(0,Math.min(100,percent))}%`;
+ if(message)scanStatus.textContent=message;
+}
+function clearScanProgress(){
+ const progress=document.getElementById("scanProgress");
+ const bar=document.getElementById("scanProgressBar");
+ bar.style.width="0%";
+ progress.classList.add("hidden");
+ progress.setAttribute("aria-hidden","true");
+}
+
+
 function showView(id){
- document.querySelectorAll(".view").forEach(v=>v.classList.toggle("active",v.id===id));
- document.querySelectorAll(".bottom-nav button").forEach(b=>b.classList.toggle("active",b.dataset.go===id));
- window.scrollTo({top:0,behavior:"smooth"});
+ const target=document.getElementById(id);
+ if(!target)return;
+ document.querySelectorAll(".view").forEach(v=>v.classList.toggle("active",v===target));
+ document.querySelectorAll(".bottom-nav button").forEach(b=>{
+  const active=b.dataset.go===id;
+  b.classList.toggle("active",active);
+  b.setAttribute("aria-current",active?"page":"false");
+ });
+ window.scrollTo({top:0,behavior:window.matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"});
+ requestAnimationFrame(()=>target.querySelector("h2")?.setAttribute("tabindex","-1"));
 }
 document.querySelectorAll("[data-go]").forEach(b=>b.addEventListener("click",()=>showView(b.dataset.go)));
 
@@ -387,27 +419,33 @@ function renderPhotos(){photoCountLabel.textContent=photos.length?`${photos.leng
 window.removePhoto=i=>{URL.revokeObjectURL(photos[i].url);photos.splice(i,1);renderPhotos()};
 clearPhotos.onclick=()=>{photos.forEach(p=>URL.revokeObjectURL(p.url));photos=[];renderPhotos();scanResultsCard.classList.add("hidden")};
 analysePhotos.onclick=async()=>{
- scanStatus.textContent=`Preparing ${photos.length} photograph${photos.length===1?"":"s"}…`;
+ const originalLabel=analysePhotos.textContent;
  analysePhotos.disabled=true;
+ clearPhotos.disabled=true;
+ analysePhotos.classList.add("is-loading");
+ analysePhotos.setAttribute("aria-busy","true");
  scanResultsCard.classList.add("hidden");
+ setScanProgress(5,`Preparing ${photos.length} photograph${photos.length===1?"":"s"}…`);
  try{
   const images=[];
   for(let i=0;i<photos.length;i++){
-   scanStatus.textContent=`Preparing photo ${i+1} of ${photos.length}…`;
+   const progress=10+Math.round(((i+1)/photos.length)*40);
+   setScanProgress(progress,`Preparing photo ${i+1} of ${photos.length}…`);
    images.push(await resizeImageForScan(photos[i].file));
   }
-  scanStatus.textContent=`Analysing ${photos.length} photograph${photos.length===1?"":"s"}…`;
+  setScanProgress(58,`Sending ${photos.length} photograph${photos.length===1?"":"s"} securely…`);
   const res=await fetch("/.netlify/functions/analyze-bar",{
    method:"POST",
    headers:{"content-type":"application/json"},
    body:JSON.stringify({images})
   });
+  setScanProgress(82,"Identifying bottles and merging duplicates…");
   const raw=await res.text();
   if(!res.ok){
    let detail=raw;
-   try{detail=JSON.parse(raw).error||JSON.parse(raw).message||raw}catch{}
-   if(res.status===404)throw new Error("The AI scanning function is not deployed. Connect the project to Git or deploy with Netlify CLI.");
-   if(res.status===503)throw new Error("The OpenAI API key is not available to the Netlify Function.");
+   try{const parsed=JSON.parse(raw);detail=parsed.error||parsed.message||raw}catch{}
+   if(res.status===404)throw new Error("The AI scanning function is not deployed.");
+   if(res.status===503)throw new Error("The OpenAI API key is not available to the scanner.");
    if(res.status===401)throw new Error("OpenAI rejected the API key.");
    if(res.status===413)throw new Error("The photo upload is too large.");
    throw new Error(`Scan failed (${res.status}): ${detail}`);
@@ -421,15 +459,23 @@ analysePhotos.onclick=async()=>{
    confidence:x.confidence??.5
   }));
   if(!candidates.length)throw new Error("No bottles could be identified. Try closer, brighter photographs with labels facing the camera.");
-  scanStatus.textContent=`Found ${candidates.length} candidate items. Please confirm each one.`;
+  setScanProgress(100,`Found ${candidates.length} candidate item${candidates.length===1?"":"s"}.`);
   renderCandidates();
   scanResultsCard.classList.remove("hidden");
+  scanResultsCard.scrollIntoView({behavior:"smooth",block:"start"});
+  showToast("Scan complete. Confirm each item before saving.");
  }catch(err){
   console.error(err);
   candidates=[];
   scanStatus.textContent=err?.message||"The scan could not be completed.";
+  showToast("The scan could not be completed.");
  }finally{
-  analysePhotos.disabled=false;
+  analysePhotos.disabled=photos.length===0;
+  clearPhotos.disabled=false;
+  analysePhotos.classList.remove("is-loading");
+  analysePhotos.removeAttribute("aria-busy");
+  analysePhotos.textContent=originalLabel;
+  setTimeout(clearScanProgress,900);
  }
 };
 
@@ -482,7 +528,7 @@ window.openHistoryDetail=date=>{
 
 function renderAll(){renderDashboard();renderInventory();renderShopping();renderBarIQ();renderRecommendationControls();renderTaste()}
 
-const APP_VERSION="1.0.0-dev";
+const APP_VERSION="1.0.1-dev";
 const APP_STORAGE_KEYS=[
  STORAGE_KEY,WISHLIST_KEY,TASTE_KEY,HISTORY_KEY,FAV_KEY,MANUAL_PREF_KEY,FEEDBACK_KEY,
  "ttt_phase2_mood","ttt_phase2_occasion","ttt_phase2_strength"

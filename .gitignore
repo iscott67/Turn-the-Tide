@@ -1,0 +1,13 @@
+# macOS
+.DS_Store
+
+# Local environment files
+.env
+.env.*
+
+# Netlify local state
+.netlify/
+
+# Editor files
+.vscode/
+.idea/
