@@ -1,23 +1,24 @@
-# Phase 3 Scope
+# Phase 3 — Recipe Workbench
 
-## Goal
-Move from simple ratings to a transparent, user-correctable taste model.
+## Version
+3.3.10-dev
 
-## Core outcomes
-1. Capture more useful feedback without making every rating burdensome.
-2. Explain what the app thinks the user likes and dislikes.
-3. Allow the user to correct mistaken assumptions.
-4. Use taste history to improve recommendations.
-5. Preserve a lightweight cocktail journal.
-6. Suggest deliberate experiments that improve the model.
+## Objective
+Make the recipe screen fast, readable and genuinely useful while someone is preparing a drink.
 
-## Taste model
-This MVP uses weighted flavour tags stored in the browser. It is transparent and easy to test, but it is not yet a production machine-learning model.
+## Included
+- Compact recipe header
+- Ready-to-make or missing status
+- Personalized “Why tonight?” explanation
+- Glass, ice, method and time essentials
+- High-contrast ingredient checklist
+- Metric-first quantities with imperial below
+- Numbered preparation steps
+- Contextual bartender note
+- Garnish and strength summary
+- Conditional substitution guidance
+- Personal history and latest note
+- Favourite, Shop Missing and Made It actions
 
-## Later production work
-- Cloud profile and cross-device sync
-- Collaborative household taste profiles
-- Confidence decay and recency weighting
-- More advanced ingredient and preparation preferences
-- Explainable recommendation reasons
-- Optional private notes and sharing controls
+## Design rule
+The practical information needed to make the drink appears before recipe provenance and secondary detail.

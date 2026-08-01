@@ -1,0 +1,24 @@
+.card{
+  padding:var(--space-5)!important; border:1px solid var(--colour-line)!important;
+  border-radius:var(--radius-lg)!important; background:var(--colour-surface)!important;
+  box-shadow:var(--shadow-card)!important;
+}
+.card+.card{margin-top:var(--space-3)!important}
+.primary,.secondary,.ghost,.camera-button{
+  min-height:48px!important; border-radius:var(--radius-md)!important;
+  transition:transform var(--motion-fast) var(--ease-standard),opacity var(--motion-fast) var(--ease-standard)!important;
+}
+.primary{background:var(--colour-primary)!important;color:var(--colour-on-primary)!important;border-color:transparent!important}
+.secondary{background:var(--colour-primary-soft)!important;color:var(--colour-text)!important;border:1px solid transparent!important}
+.ghost{background:transparent!important;color:var(--colour-text)!important;border:1px solid var(--colour-line)!important}
+.primary:active,.secondary:active,.ghost:active,.camera-button:active{transform:scale(.985)}
+button:disabled{opacity:.5!important}
+input,select,textarea{
+  background:var(--colour-surface)!important;color:var(--colour-text)!important;
+  border:1px solid var(--colour-line)!important;border-radius:var(--radius-sm)!important;
+}
+input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-visible{
+  outline:3px solid color-mix(in srgb,var(--colour-primary) 24%,transparent)!important;
+  outline-offset:2px;
+}
+.status-pill{border-radius:999px!important;font-size:var(--text-xs)!important;font-weight:var(--weight-medium)!important}

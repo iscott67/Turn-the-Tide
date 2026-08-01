@@ -8,7 +8,7 @@
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icons/favicon.png">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
-  <link rel="stylesheet" href="styles.css?v=3.2.0-dev">
+  <link rel="stylesheet" href="styles.css?v=3.3.10-dev">
   <title>Turn the Tide | Home Bar Companion</title>
 </head>
 <body>
@@ -26,7 +26,7 @@
       </button>
     </header>
 
-    <main>
+    <main id="mainContent" tabindex="-1">
       <section id="dashboardView" class="view active">
         <section class="home-welcome">
           <span class="home-kicker">Good evening</span>
@@ -39,13 +39,23 @@
           </div>
         </section>
 
-        <section class="home-action-card">
-          <div>
-            <span class="eyebrow">Tonight</span>
-            <h2>Find the right drink</h2>
-            <p>A recommendation shaped by your inventory, taste and the moment.</p>
+        <section id="homeRecommendationCard" class="home-recommendation-card">
+          <div class="home-recommendation-copy">
+            <div class="home-recommendation-header">
+              <span class="eyebrow">Tonight’s recommendation</span>
+              <span id="homeRecommendationStatus" class="recommendation-status">Learning your bar</span>
+            </div>
+            <h2 id="homeRecommendationName">Choose a drink</h2>
+            <p id="homeRecommendationTags">A thoughtful recommendation shaped by your bar and taste.</p>
+            <div id="homeRecommendationReasons" class="home-reasons"></div>
+            <div class="home-recommendation-actions">
+              <button id="homeMakeBtn" class="primary" type="button">View recipe</button>
+              <button id="homeAnotherBtn" class="secondary" type="button">Another idea</button>
+            </div>
           </div>
-          <button class="primary home-action-button" data-go="recommendView">Choose a drink</button>
+          <div class="home-recommendation-mark" aria-hidden="true">
+            <span></span><i></i>
+          </div>
         </section>
 
         <section class="metric-grid">
@@ -58,6 +68,14 @@
           <button type="button" data-go="scanView"><span class="line-icon icon-camera"></span><span>Scan shelf</span></button>
           <button type="button" data-go="shoppingView"><span class="line-icon icon-cart"></span><span>Shopping list</span></button>
           <button type="button" data-go="recommendView"><span class="line-icon icon-compass"></span><span>Choose a drink</span></button>
+        </section>
+        <section id="homeMilestoneCard" class="home-milestone-card hidden" aria-live="polite">
+          <div class="milestone-icon"><span class="line-icon icon-chart"></span></div>
+          <div>
+            <span class="eyebrow">Milestone</span>
+            <h2 id="homeMilestoneTitle">Your bar is taking shape</h2>
+            <p id="homeMilestoneBody"></p>
+          </div>
         </section>
 
         <section class="card capability-card">
@@ -77,13 +95,16 @@
           </div>
         </section>
 
-        <section id="dashboardInsightCard" class="card">
+        <section id="dashboardInsightCard" class="card purchase-spotlight">
           <div class="section-heading">
-            <div><span class="eyebrow">Today's insight</span><h2 id="insightTitle">Build your first inventory</h2></div>
+            <div><span class="eyebrow">One purchase worth making</span><h2 id="insightTitle">Build your first inventory</h2></div>
             <span class="line-icon icon-bulb" aria-hidden="true"></span>
           </div>
-          <p id="insightBody">A multi-photo scan will identify visible bottles, estimate status and ask you to confirm uncertain matches.</p>
-          <button id="insightAction" class="secondary" data-go="scanView">Start inventory scan</button>
+          <p id="insightBody">Scan your shelves to identify the bottle that would improve your bar most.</p>
+          <div class="purchase-spotlight-actions">
+            <button id="insightAction" class="secondary" data-go="scanView">Start inventory scan</button>
+            <button id="insightShopAction" class="text-btn hidden" type="button">Add to shopping list</button>
+          </div>
         </section>
 
         <section id="dashboardPurchaseCard" class="card">
@@ -106,57 +127,87 @@
       <section id="scanView" class="view">
         <section class="page-intro scan-intro">
           <button class="back-btn" data-go="dashboardView" aria-label="Back to home">←</button>
-          <div><span class="eyebrow light">My Bar</span><h2>Scan a shelf</h2><p>Build your inventory one section at a time.</p></div>
+          <div>
+            <span class="eyebrow light">Scan Shelf</span>
+            <h2>Add bottles without typing</h2>
+            <p>Photograph one shelf, let AI identify the labels, then confirm the result.</p>
+          </div>
         </section>
 
-        <section class="card scan-workspace">
-          <div class="section-heading">
-            <div><span class="eyebrow">Shelf 1</span><h2 id="photoCountLabel">Add up to three photos</h2></div>
-            <button id="clearPhotos" class="text-btn hidden" type="button">Clear</button>
+        <section class="scan-stepper" aria-label="Scan progress">
+          <div id="scanStepPhotos" class="scan-step active"><span>1</span><strong>Photos</strong></div>
+          <i></i>
+          <div id="scanStepAnalyse" class="scan-step"><span>2</span><strong>Analyse</strong></div>
+          <i></i>
+          <div id="scanStepConfirm" class="scan-step"><span>3</span><strong>Confirm</strong></div>
+        </section>
+
+        <section id="scanCaptureCard" class="card scan-capture-card">
+          <div class="scan-capture-heading">
+            <div>
+              <span class="eyebrow">One shelf at a time</span>
+              <h2 id="photoCountLabel">Take your first photo</h2>
+              <p id="photoStripHint">Use one to three overlapping views. Keep labels facing the camera.</p>
+            </div>
+            <button id="clearPhotos" class="text-btn hidden" type="button">Start over</button>
           </div>
 
-          <label class="camera-button premium-camera">
-            <span class="camera-orb"><span class="line-icon icon-camera"></span></span>
-            <span><strong>Add photos</strong><small>Use overlapping views of one shelf</small></span>
+          <label class="scan-camera-control">
+            <span class="scan-camera-icon"><span class="line-icon icon-camera"></span></span>
+            <span>
+              <strong id="scanCameraLabel">Take or add photo</strong>
+              <small>Photos stay in this scan until you confirm the shelf</small>
+            </span>
             <input id="barPhotos" type="file" accept="image/*" capture="environment" multiple>
           </label>
 
-          <div id="photoStrip" class="photo-strip"></div><p id="photoStripHint" class="photo-strip-hint">Add one to three overlapping photos of a single shelf.</p>
+          <div id="photoStrip" class="photo-strip scan-photo-strip"></div>
 
-          <div class="scan-actions">
-            <button id="analysePhotos" class="primary wide" disabled>Analyse photos</button>
-            <button id="cancelScanBtn" class="secondary wide hidden" type="button">Cancel</button>
-          </div>
-
-          <div id="scanProgress" class="scan-progress hidden" aria-hidden="true">
-            <span id="scanProgressBar"></span>
-          </div>
-          <p id="scanStatus" class="status-text" role="status" aria-live="polite"></p>
+          <button id="analysePhotos" class="primary scan-primary-action" disabled>
+            Analyse shelf
+          </button>
         </section>
 
-        <section id="scanResultsCard" class="card hidden">
-          <div class="section-heading">
-            <div><span class="eyebrow">Review</span><h2>Confirm detected bottles</h2></div>
-            <span id="scanResultCount" class="count-badge">0</span>
+        <section id="scanWorkingCard" class="card scan-working-card hidden" aria-live="polite">
+          <div class="scan-working-visual" aria-hidden="true">
+            <span class="scan-pulse"></span>
+            <span class="line-icon icon-camera"></span>
           </div>
-          <p class="helper">Check each bottle before adding it. Recognition is helpful, but not infallible.</p>
-          <div id="scanCandidates"></div>
-          <div class="button-row">
-            <button id="addCandidateRow" class="secondary">Add missed item</button>
-            <button id="saveScanResults" class="primary">Add to My Bar</button>
+          <span class="eyebrow">AI recognition</span>
+          <h2 id="scanWorkingTitle">Preparing your photos</h2>
+          <p id="scanStatus" class="status-text" role="status">This usually takes less than a minute.</p>
+          <div id="scanProgress" class="scan-progress" aria-hidden="false">
+            <span id="scanProgressBar"></span>
+          </div>
+          <button id="cancelScanBtn" class="text-btn" type="button">Cancel scan</button>
+        </section>
+
+        <section id="scanResultsCard" class="card scan-results-card hidden">
+          <div class="section-heading">
+            <div>
+              <span class="eyebrow">Confirm this shelf</span>
+              <h2><span id="scanResultCount">0</span> bottles recognized</h2>
+            </div>
+            <span id="scanConfidenceSummary" class="scan-confidence-summary">Review needed</span>
+          </div>
+          <p class="helper">Correct uncertain names or types before adding the shelf to My Bar.</p>
+          <div id="scanCandidates" class="scan-candidate-list"></div>
+          <div class="scan-result-actions">
+            <button id="addCandidateRow" class="secondary" type="button">Add missed bottle</button>
+            <button id="saveScanResults" class="primary" type="button">Add shelf to My Bar</button>
           </div>
         </section>
 
         <details class="card scan-guide">
           <summary>
-            <span><span class="eyebrow">Photo guidance</span><strong>For the best result</strong></span>
+            <span><span class="eyebrow">Photo guidance</span><strong>How to get a cleaner scan</strong></span>
             <span class="details-chevron">⌄</span>
           </summary>
           <ol>
-            <li>Photograph one shelf at a time.</li>
-            <li>Use one to three overlapping views, moving left to right.</li>
-            <li>Keep labels bright, unobstructed and facing the camera.</li>
-            <li>Complete this shelf, then begin another scan for the next section.</li>
+            <li>Scan one shelf or cabinet section at a time.</li>
+            <li>Take the first photo straight on, then overlap left and right views if needed.</li>
+            <li>Move glare, hands and glassware away from the bottle labels.</li>
+            <li>Use brighter room light rather than the camera flash where possible.</li>
           </ol>
           <div class="overlap-diagram" aria-label="Three overlapping photo guide">
             <span>1</span><span>2</span><span>3</span>
@@ -204,168 +255,50 @@
       <section id="tasteView" class="view">
         <section class="page-intro">
           <button class="back-btn" data-go="dashboardView">←</button>
-          <div><span class="eyebrow light">Your palate</span><h2>Learn My Taste</h2></div>
-        </section>
-
-        <section class="taste-summary-grid">
-          <article class="card taste-summary-card">
-            <span class="eyebrow">Confidence</span>
-            <strong id="tasteConfidence">0%</strong>
-            <small id="tasteConfidenceLabel">Not enough history yet</small>
-          </article>
-          <article class="card taste-summary-card">
-            <span class="eyebrow">Cocktails rated</span>
-            <strong id="ratedCount">0</strong>
-            <small>Across all sessions</small>
-          </article>
-          <article class="card taste-summary-card">
-            <span class="eyebrow">House favourites</span>
-            <strong id="favouriteCount">0</strong>
-            <small>Your proven drinks</small>
-          </article>
-        </section>
-
-        <section class="card">
-          <div class="section-heading">
-            <div><span class="eyebrow">Taste map</span><h2>What the app has learned</h2></div>
-            <button id="resetTasteBtn" class="text-btn">Reset learning</button>
-          </div>
-          <div id="tasteRadar" class="taste-radar"></div>
-          <div id="tasteProfile" class="taste-profile"></div>
-          <p id="tasteNarrative" class="helper"></p>
-        </section>
-
-        <section class="card">
-          <div class="section-heading">
-            <div><span class="eyebrow">Palate controls</span><h2>Tell us directly</h2></div>
-          </div>
-          <p class="helper">Adjust these only when the app has learned something incorrectly. Ratings still carry the most weight.</p>
-          <div id="preferenceSliders" class="preference-sliders"></div>
-        </section>
-
-        <section class="card">
-          <div class="section-heading">
-            <div><span class="eyebrow">House Favourites</span><h2>Your proven drinks</h2></div>
-            <button class="text-btn" data-go="recommendView">Use in recommendations</button>
-          </div>
-          <div id="favouritesList" class="compact-list"></div>
-        </section>
-
-        <section class="card">
-          <div class="section-heading">
-            <div><span class="eyebrow">Learning journal</span><h2>Recent cocktail history</h2></div>
-            <select id="historyFilter">
-              <option value="all">All ratings</option>
-              <option value="house-favourite">House Favourites</option>
-              <option value="worth-exploring">Worth Exploring</option>
-              <option value="not-for-me">Not for Me</option>
-            </select>
-          </div>
-          <div id="recentRatings" class="compact-list"></div>
-        </section>
-
-        <section class="card">
-          <span class="eyebrow">What to try next</span>
-          <h2 id="tasteNextTitle">Rate a few cocktails first</h2>
-          <p id="tasteNextReason">The app will identify a useful next experiment once it has enough information.</p>
-          <button id="tasteNextBtn" class="secondary" data-go="recommendView">Find tonight's drink</button>
-        </section>
-      </section>
-
-      <section id="inventoryView" class="view">
-        <section class="page-intro">
-          <button class="back-btn" data-go="dashboardView">←</button>
-          <div><span class="eyebrow light">My Bar</span><h2>Inventory</h2></div>
-        </section>
-
-        <section class="card">
-          <div class="inventory-toolbar">
-            <label class="search-box"><span class="line-icon icon-search"></span><input id="inventorySearch" placeholder="Search bottles and ingredients"></label>
-            <select id="inventoryFilter" aria-label="Filter inventory">
-              <option value="all">All status</option>
-              <option value="good">Good</option>
-              <option value="low">Running low</option>
-              <option value="replace">Need to replace</option>
-            </select>
-            <button id="addManualBtn" class="primary compact">Add item</button>
-          </div>
-          <div id="inventoryList" class="inventory-list"></div>
-        </section>
-      </section>
-
-      <section id="shoppingView" class="view">
-        <section class="page-intro">
-          <button class="back-btn" data-go="dashboardView">←</button>
-          <div><span class="eyebrow light">Shopping</span><h2>Purchase list & wishlist</h2></div>
-        </section>
-
-        <section class="card">
-          <div class="section-heading">
-            <div><span class="eyebrow">Automatic list</span><h2>Replace or replenish</h2></div>
-            <span class="line-icon icon-cart"></span>
-          </div>
-          <div id="purchaseList" class="shopping-list"></div>
-        </section>
-
-        <section class="card">
-          <div class="section-heading">
-            <div><span class="eyebrow">Wishlist</span><h2>Bottles to consider</h2></div>
-            <button id="addWishlistBtn" class="text-btn">Add bottle</button>
-          </div>
-          <div id="wishlistList" class="shopping-list"></div>
-        </section>
-
-        <section class="card">
-          <span class="eyebrow">Best next bottle</span>
-          <h2 id="bestNextBottle">Build your inventory first</h2>
-          <p id="bestNextReason">Bar IQ will estimate which addition unlocks the most useful new cocktails without duplicating your collection.</p>
-        </section>
-      </section>
-
-      <section id="barIqView" class="view">
-        <section class="page-intro">
-          <button class="back-btn" data-go="dashboardView">←</button>
-          <div><span class="eyebrow light">Bar IQ</span><h2>What your bar can do</h2></div>
-        </section>
-
-        <section class="iq-hero card">
-          <div class="score-ring"><strong id="barIqScore">0</strong><span>/100</span></div>
           <div>
-            <span class="eyebrow">Overall capability</span>
-            <h2 id="barIqLabel">Not yet assessed</h2>
-            <p id="barIqSummary">Add or scan your inventory to calculate coverage, balance and purchasing leverage.</p>
+            <span class="eyebrow light">My Taste</span>
+            <h2>Teach the bartender</h2>
+            <p>Your ratings, notes and preferences shape future recommendations.</p>
           </div>
         </section>
 
-        <section class="card inventory-analysis-card">
+        <section class="card taste-profile-card">
           <div class="section-heading">
-            <div><span class="eyebrow">Inventory analysis</span><h2>Your bar at a glance</h2></div>
+            <div><span class="eyebrow">Taste profile</span><h2 id="tasteProfileTitle">Still learning</h2></div>
+            <span id="tasteConfidenceBadge" class="taste-confidence-badge">0 signals</span>
           </div>
-          <div class="analysis-layout">
-            <div>
-              <div id="inventoryWheel" class="inventory-wheel" aria-label="Inventory composition chart"></div>
-              <p id="inventoryWheelLabel" class="analysis-centre-label">No inventory</p>
-            </div>
-            <div id="inventoryLegend" class="analysis-legend"></div>
-          </div>
+          <p id="tasteProfileSummary" class="helper">Make and rate a few drinks to build a useful profile.</p>
+          <div id="tasteProfileBars" class="taste-profile-bars"></div>
         </section>
 
         <section class="card">
           <div class="section-heading">
-            <div><span class="eyebrow">Cocktail spectrum</span><h2>Where your bar can travel</h2></div>
+            <div><span class="eyebrow">Set your direction</span><h2>What do you usually enjoy?</h2></div>
           </div>
-          <p class="helper">The spectrum reflects drinks you can make now, including the everyday staples enabled in Bar Settings.</p>
-          <div id="cocktailSpectrum" class="cocktail-spectrum"></div>
+          <p class="helper">These are gentle preferences, not hard filters. Recommendations may still introduce something new.</p>
+          <div id="manualTasteControls" class="manual-taste-controls"></div>
         </section>
 
         <section class="card">
-          <div class="section-heading"><div><span class="eyebrow">Coverage</span><h2>Bar programmes</h2></div></div>
-          <div id="programmeScores" class="programme-list"></div>
+          <div class="section-heading">
+            <div><span class="eyebrow">Your patterns</span><h2>What the app has learned</h2></div>
+          </div>
+          <div id="tasteInsights" class="taste-insights"></div>
         </section>
 
         <section class="card">
-          <div class="section-heading"><div><span class="eyebrow">Unlock analysis</span><h2>High-value additions</h2></div></div>
-          <div id="unlockList" class="unlock-list"></div>
+          <div class="section-heading">
+            <div><span class="eyebrow">House favourites</span><h2>Drinks worth returning to</h2></div>
+          </div>
+          <div id="favouriteRecipes" class="taste-recipe-list"></div>
+        </section>
+
+        <section class="card">
+          <div class="section-heading">
+            <div><span class="eyebrow">Recent history</span><h2>Your cocktail journal</h2></div>
+            <button id="clearTasteHistory" class="text-btn" type="button">Clear history</button>
+          </div>
+          <div id="tasteHistoryList" class="taste-history-list"></div>
         </section>
       </section>
 
@@ -389,7 +322,7 @@
           </div>
           <div class="about-meta-grid">
             <div><small>Application</small><strong>Turn the Tide</strong></div>
-            <div><small>Version</small><strong>3.2.0-dev</strong></div>
+            <div><small>Version</small><strong>3.3.10-dev</strong></div>
             <div><small>Recipe library</small><strong>140 recipes</strong></div>
             <div><small>Recipe data</small><strong>2026.07</strong></div>
             <div><small>Platform</small><strong>Progressive Web App</strong></div>
@@ -399,7 +332,7 @@
 
         <section id="releaseNotesSection" class="card menu-target">
           <span class="eyebrow">Release notes</span>
-          <h2>Atlantic Edition 3.2.0-dev</h2>
+          <h2>Atlantic Edition 3.3.10-dev</h2>
           <ul class="about-list">
             <li>Completed the 140-recipe mobile library.</li>
             <li>Added exact imperial and metric quantities.</li>
@@ -503,6 +436,55 @@
             <button type="button" class="theme-choice" data-theme-choice="cellar"><span class="theme-dot theme-cellar"></span>Cellar</button>
             <button type="button" class="theme-choice" data-theme-choice="midnight"><span class="theme-dot theme-midnight"></span>Midnight</button>
           </div>
+          <div class="menu-setting-block">
+            <span class="menu-setting-label">Measurements</span>
+            <div class="measurement-picker" role="group" aria-label="Recipe measurement system">
+              <button type="button" class="measurement-choice" data-measurement-choice="metric">Metric</button>
+              <button type="button" class="measurement-choice" data-measurement-choice="imperial">Imperial</button>
+            </div>
+            <p class="menu-helper">The selected system appears first in every recipe. The alternate measure remains underneath.</p>
+          </div>
+          <div class="menu-setting-block">
+            <span class="menu-setting-label">Experience</span>
+            <label class="experience-toggle">
+              <span>
+                <strong>Subtle feedback</strong>
+                <small>Use gentle vibration where the browser supports it.</small>
+              </span>
+              <input id="hapticsToggle" type="checkbox">
+            </label>
+            <label class="experience-toggle">
+              <span>
+                <strong>Celebration moments</strong>
+                <small>Show restrained visual feedback after milestones.</small>
+              </span>
+              <input id="celebrationToggle" type="checkbox">
+            </label>
+          </div>
+        </div>
+      </details>
+
+      <details class="menu-submenu">
+        <summary>Personalization</summary>
+        <div class="menu-submenu-body">
+          <p class="menu-helper">Control how adventurous recommendations should be.</p>
+          <label class="personalization-setting">
+            <span>Discovery level</span>
+            <select id="discoveryLevelSelect">
+              <option value="familiar">Mostly familiar</option>
+              <option value="balanced">Balanced</option>
+              <option value="adventurous">More adventurous</option>
+            </select>
+          </label>
+          <label class="personalization-setting">
+            <span>Default strength</span>
+            <select id="defaultStrengthSelect">
+              <option value="any">No preference</option>
+              <option value="light">Lighter</option>
+              <option value="balanced">Balanced</option>
+              <option value="strong">Spirit-forward</option>
+            </select>
+          </label>
         </div>
       </details>
 
@@ -535,13 +517,41 @@
     </nav>
 
     <div class="app-menu-footer">
-      <strong>Turn the Tide 3.2.0-dev</strong>
+      <strong>Turn the Tide 3.3.10-dev</strong>
       <small>Recipe data 2026.07</small>
     </div>
   </aside>
 
 
   <div id="appToast" class="app-toast" role="status" aria-live="polite" aria-atomic="true"></div>
+
+
+
+  <dialog id="onboardingDialog">
+    <article class="dialog-card onboarding-card">
+      <button id="onboardingClose" class="dialog-close" type="button" aria-label="Close welcome">×</button>
+      <div class="onboarding-mark" aria-hidden="true">
+        <span class="line-icon icon-compass"></span>
+      </div>
+      <span class="eyebrow">Welcome to Turn the Tide</span>
+      <h2>Your home bar, understood.</h2>
+      <p>Scan your bottles, learn what you can make and let recommendations improve with every drink.</p>
+      <div class="onboarding-steps">
+        <div><span>1</span><strong>Scan a shelf</strong><small>Add bottles without typing.</small></div>
+        <div><span>2</span><strong>Choose tonight</strong><small>Get one clear recommendation and why it fits.</small></div>
+        <div><span>3</span><strong>Rate what you make</strong><small>Teach the bartender your taste.</small></div>
+      </div>
+      <button id="onboardingStart" class="primary" type="button">Start with a shelf scan</button>
+      <button id="onboardingSkip" class="text-btn" type="button">Explore first</button>
+    </article>
+  </dialog>
+
+  <dialog id="bottleDetailDialog">
+    <article class="dialog-card bottle-detail-sheet">
+      <button id="bottleDetailClose" class="dialog-close" type="button" aria-label="Close bottle details">×</button>
+      <div id="bottleDetailContent"></div>
+    </article>
+  </dialog>
 
   <dialog id="itemDialog">
     <form method="dialog" class="dialog-card" id="itemForm">
@@ -635,7 +645,7 @@
     </form>
   </dialog>
 
-  <script src="menu-controller.js?v=3.2.0-dev"></script>
-  <script src="app.js?v=3.2.0-dev"></script>
+  <script src="menu-controller.js?v=3.3.10-dev"></script>
+  <script src="app.js?v=3.3.10-dev"></script>
 </body>
 </html>

@@ -1,0 +1,24 @@
+html,body{background:var(--colour-bg)!important}
+body{overflow-x:hidden}
+.app-shell{background:transparent!important}
+main{padding-top:var(--space-3)!important}
+.home-welcome h2{font-size:clamp(2rem,8vw,3rem)!important;line-height:1.04!important}
+.home-action-card{background:var(--colour-primary)!important;color:var(--colour-on-primary)!important;border-radius:var(--radius-lg)!important}
+.home-action-card h2{color:var(--colour-on-primary)!important}
+.home-action-card p,.home-action-card .eyebrow{color:color-mix(in srgb,var(--colour-on-primary) 76%,transparent)!important}
+.home-action-button{background:var(--colour-surface)!important;color:var(--colour-text)!important}
+.metric,.capability-grid button,.home-quick-actions button{
+  background:var(--colour-surface)!important;color:var(--colour-text)!important;border-color:var(--colour-line)!important;
+}
+.metric strong,.capability-grid strong{color:var(--colour-text)!important}
+.metric span,.capability-grid span{color:var(--colour-muted)!important}
+.page-intro{background:var(--colour-surface)!important;color:var(--colour-text)!important}
+.page-intro .eyebrow.light{color:var(--colour-primary)!important}
+.back-btn{background:var(--colour-surface-subtle)!important;color:var(--colour-text)!important;border-color:var(--colour-line)!important}
+.premium-camera{background:var(--colour-surface-subtle)!important;color:var(--colour-text)!important;border-color:var(--colour-line)!important}
+.premium-camera .camera-orb{background:var(--colour-primary)!important}
+.scan-progress{background:var(--colour-line)!important}
+.scan-progress span{background:var(--colour-primary)!important}
+.inventory-row,.unlock-card{background:var(--colour-surface)!important;border-color:var(--colour-line)!important}
+.inventory-edit-button,.unlock-inline-actions button{background:var(--colour-surface-subtle)!important;color:var(--colour-text)!important;border-color:var(--colour-line)!important}
+@media(max-width:420px){.card{padding:var(--space-4)!important}.home-welcome h2{font-size:2.16rem!important}}

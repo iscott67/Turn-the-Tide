@@ -1,0 +1,24 @@
+html{font-size:16px}
+body{
+  font-family:var(--font-ui)!important; font-size:var(--text-base);
+  font-weight:var(--weight-regular)!important; line-height:1.48;
+  color:var(--colour-text)!important; -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,p{margin-top:0}
+h1,h2,h3,.brand h1,.section-heading h2,.page-intro h2{
+  color:var(--colour-text)!important; letter-spacing:-.025em!important;
+}
+h1,.brand h1,h2,.section-heading h2,.page-intro h2{font-weight:var(--weight-semibold)!important}
+h3{font-weight:var(--weight-medium)!important}
+p,.helper,.status-text{color:var(--colour-muted)!important}
+.eyebrow{
+  font-size:var(--text-xs)!important; font-weight:var(--weight-semibold)!important;
+  letter-spacing:.1em!important; text-transform:uppercase; color:var(--colour-muted)!important;
+}
+.recipe-name,.mobile-recipe .recipe-hero h2{
+  font-family:var(--font-display)!important; font-weight:var(--weight-regular)!important;
+  letter-spacing:-.028em!important;
+}
+button,input,select,textarea{font:inherit}
+button{font-weight:var(--weight-medium)!important}
+strong{font-weight:var(--weight-semibold)!important}

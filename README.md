@@ -1,39 +1,66 @@
 # Turn the Tide
 
-**Current development version: 3.2.0-dev**
+**Current development version: 3.3.10-dev**
 
-Turn the Tide is an AI home bar companion. It combines inventory, configurable kitchen staples, taste history and context to show what can be made now, what is within reach and what addition would improve the bar most.
+Version 3.3.10-dev establishes Design System 2.0 with modular CSS, semantic themes, consistent typography, components, motion and accessibility.
 
-## Version 3 foundation
-
-- Honest “ready now” and “one ingredient away” counts
-- Configurable kitchen staples
-- Inventory composition wheel
-- Cocktail-style spectrum
-- Theme switching
-- Structured application settings
-- Existing inventory scanning, recommendations, Taste and Bar IQ
+See `DESIGN-SYSTEM.md`.
 
 ## Netlify
-
 - Build command: blank
 - Publish directory: `.`
 - Functions directory: `netlify/functions`
-- Required environment variable: `OPENAI_API_KEY`
+- Environment variable: `OPENAI_API_KEY`
 
-## Deploy with GitHub Desktop
-
-1. Copy all package contents into the cloned repository.
-2. Commit with `Deploy Turn the Tide 3.2.0-dev`.
-3. Push to `main`.
-4. Netlify will deploy automatically.
+## Deploy
+Copy all files into the cloned repository, wait for GitHub Desktop to detect changes, commit with `Deploy Turn the Tide 3.3.10-dev design system`, then push to `main`.
 
 
-## 3.2.0-dev
+## Phase 2: Intelligent Home
 
-Adds actionable Bar IQ additions, shopping-list integration, cleaner inventory rows, lighter typography and reliable inventory-dialog dismissal.
+Home now presents one recommendation, one high-value purchase and concise reasoning based on the current bar and learned taste.
 
 
-## 3.2.0-dev
+## Phase 3: Recipe Workbench
 
-Introduces five-item primary navigation, direct Bar IQ actions, stronger scan discovery and a cleaner Home dashboard.
+Recipes now prioritize makeability, readable ingredients, clear steps, personalized context and concise actions.
+
+
+## Measurement preference
+
+Users may select Metric or Imperial under Appearance. The preference persists locally and controls which quantity is emphasized in recipes.
+
+
+## Phase 4: AI Explanation Layer
+
+Recommendations now explain their fit using availability, time, season, taste, favourites and history. The reasoning remains grounded in data the app actually holds.
+
+
+## Phase 5: Bar Compass
+
+The inventory wheel is now an interactive map of spirit families, cocktail coverage and high-value gaps.
+
+
+## Phase 6: Smart Shopping
+
+The Bottle List now ranks high-impact additions, handles replacement items, supports Already Have and Ignore actions, and summarizes potential recipe unlocks.
+
+
+## Phase 7: Scanner Journey
+
+Shelf scanning now follows a clear Photos, Analyse and Confirm workflow with stronger progress, confidence and review interfaces.
+
+
+## Phase 8: My Bar
+
+Inventory is now a structured bottle collection with family filters, search, sorting, bottle detail sheets and recipe coverage.
+
+
+## Phase 9: Personalization
+
+My Taste now combines ratings, favourites, history and manual preferences to improve recommendations over time. Data remains local to the device.
+
+
+## Phase 10: Delight and Product Polish
+
+The app now includes onboarding, optional browser feedback, restrained celebrations, milestones and more consistent interaction motion.

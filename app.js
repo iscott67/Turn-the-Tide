@@ -14,6 +14,11 @@ const MANUAL_PREF_KEY="turn_the_tide_phase3_manual_preferences";
 const FEEDBACK_KEY="turn_the_tide_phase3_feedback";
 
 const STAPLES_KEY="turn_the_tide_v3_staples";
+const MEASUREMENT_KEY="turn_the_tide_measurement_system";
+const SHOPPING_IGNORE_KEY="turn_the_tide_shopping_ignored";
+const PERSONALIZATION_KEY="turn_the_tide_personalization";
+const EXPERIENCE_KEY="turn_the_tide_experience";
+const ONBOARDING_KEY="turn_the_tide_onboarding_complete";
 const DEFAULT_STAPLES={
  "lemon":true,
  "lime":true,
@@ -46,6 +51,11 @@ let favourites=JSON.parse(localStorage.getItem(FAV_KEY)||"[]");
 let manualPreferences=JSON.parse(localStorage.getItem(MANUAL_PREF_KEY)||"{}");
 let detailedFeedback=JSON.parse(localStorage.getItem(FEEDBACK_KEY)||"[]");
 let staples={...DEFAULT_STAPLES,...JSON.parse(localStorage.getItem(STAPLES_KEY)||"{}")};
+let measurementSystem=localStorage.getItem(MEASUREMENT_KEY)||"metric";
+let ignoredShopping=JSON.parse(localStorage.getItem(SHOPPING_IGNORE_KEY)||"[]");
+let activeInventoryFamily="all";
+let personalization={discovery:"balanced",defaultStrength:"any",...JSON.parse(localStorage.getItem(PERSONALIZATION_KEY)||"{}")};
+let experience={haptics:true,celebrations:true,...JSON.parse(localStorage.getItem(EXPERIENCE_KEY)||"{}")};
 let photos=[],candidates=[];
 let selectedMood=localStorage.getItem("ttt_phase2_mood")||"relaxed";
 let selectedOccasion=localStorage.getItem("ttt_phase2_occasion")||"quiet";
@@ -82,6 +92,86 @@ const occasionOptions=[
  ["by-water","By the water"],["rain","Rain on the deck"],["music","Evening music"]
 ];
 
+
+function gentleFeedback(pattern=12){
+ if(!experience.haptics)return;
+ if("vibrate" in navigator){
+  try{navigator.vibrate(pattern)}catch{}
+ }
+}
+
+function celebrateMoment(message){
+ if(!experience.celebrations)return;
+ const node=document.createElement("div");
+ node.className="celebration-burst";
+ node.setAttribute("aria-hidden","true");
+ node.innerHTML=`<span></span><span></span><span></span><strong>${escapeHtml(message)}</strong>`;
+ document.body.appendChild(node);
+ requestAnimationFrame(()=>node.classList.add("show"));
+ setTimeout(()=>node.classList.remove("show"),1200);
+ setTimeout(()=>node.remove(),1550);
+}
+
+function renderExperienceControls(){
+ if(hapticsToggle)hapticsToggle.checked=Boolean(experience.haptics);
+ if(celebrationToggle)celebrationToggle.checked=Boolean(experience.celebrations);
+}
+
+hapticsToggle?.addEventListener("change",()=>{
+ experience.haptics=hapticsToggle.checked;
+ localStorage.setItem(EXPERIENCE_KEY,JSON.stringify(experience));
+ gentleFeedback(10);
+ showToast(experience.haptics?"Subtle feedback enabled.":"Subtle feedback disabled.");
+});
+
+celebrationToggle?.addEventListener("change",()=>{
+ experience.celebrations=celebrationToggle.checked;
+ localStorage.setItem(EXPERIENCE_KEY,JSON.stringify(experience));
+ if(experience.celebrations)celebrateMoment("Enabled");
+ showToast(experience.celebrations?"Celebration moments enabled.":"Celebration moments disabled.");
+});
+
+function currentMilestone(){
+ const bottleCount=inventory.length;
+ const madeCount=history.length;
+ const favouriteCount=favourites.length;
+ if(bottleCount>=50)return {title:"A serious home bar",body:`${bottleCount} bottles now support ${availableRecipes().length} ready cocktails.`};
+ if(bottleCount>=25)return {title:"Your bar has range",body:`${bottleCount} bottles are opening up a much broader cocktail spectrum.`};
+ if(madeCount>=20)return {title:"A real cocktail journal",body:`You have logged ${madeCount} drinks and the taste profile is becoming meaningfully personal.`};
+ if(favouriteCount>=5)return {title:"Your house list is emerging",body:`You have saved ${favouriteCount} House Favourites.`};
+ if(bottleCount>=10)return {title:"Your bar is taking shape",body:`${bottleCount} bottles are enough to make ${availableRecipes().length} curated cocktails right now.`};
+ return null;
+}
+
+function renderMilestone(){
+ if(!homeMilestoneCard)return;
+ const milestone=currentMilestone();
+ homeMilestoneCard.classList.toggle("hidden",!milestone);
+ if(milestone){
+  homeMilestoneTitle.textContent=milestone.title;
+  homeMilestoneBody.textContent=milestone.body;
+ }
+}
+
+function maybeShowOnboarding(){
+ if(localStorage.getItem(ONBOARDING_KEY)==="true")return;
+ setTimeout(()=>onboardingDialog?.showModal(),350);
+}
+
+onboardingClose?.addEventListener("click",()=>{
+ localStorage.setItem(ONBOARDING_KEY,"true");
+ onboardingDialog.close();
+});
+onboardingSkip?.addEventListener("click",()=>{
+ localStorage.setItem(ONBOARDING_KEY,"true");
+ onboardingDialog.close();
+});
+onboardingStart?.addEventListener("click",()=>{
+ localStorage.setItem(ONBOARDING_KEY,"true");
+ onboardingDialog.close();
+ showView("scanView");
+});
+
 function save(){
  localStorage.setItem(STORAGE_KEY,JSON.stringify(inventory));
  localStorage.setItem(WISHLIST_KEY,JSON.stringify(wishlist));
@@ -91,6 +181,10 @@ function save(){
  localStorage.setItem(MANUAL_PREF_KEY,JSON.stringify(manualPreferences));
  localStorage.setItem(FEEDBACK_KEY,JSON.stringify(detailedFeedback));
  localStorage.setItem(STAPLES_KEY,JSON.stringify(staples));
+ localStorage.setItem(MEASUREMENT_KEY,measurementSystem);
+ localStorage.setItem(SHOPPING_IGNORE_KEY,JSON.stringify(ignoredShopping));
+ localStorage.setItem(PERSONALIZATION_KEY,JSON.stringify(personalization));
+ localStorage.setItem(EXPERIENCE_KEY,JSON.stringify(experience));
  renderAll()
 }
 function normalizedInventory(){return inventory.filter(x=>x.status!=="replace").flatMap(x=>[(x.name||"").toLowerCase(),(x.brand||"").toLowerCase(),(x.type||"").toLowerCase(),(x.notes||"").toLowerCase()])}
@@ -115,10 +209,15 @@ function showToast(message){
 function setScanProgress(percent,message){
  const progress=document.getElementById("scanProgress");
  const bar=document.getElementById("scanProgressBar");
- progress.classList.remove("hidden");
- progress.setAttribute("aria-hidden","false");
- bar.style.width=`${Math.max(0,Math.min(100,percent))}%`;
- if(message)scanStatus.textContent=message;
+ if(progress)progress.classList.remove("hidden");
+ if(progress)progress.setAttribute("aria-hidden","false");
+ if(bar)bar.style.width=`${Math.max(0,Math.min(100,percent))}%`;
+ if(message){
+  scanStatus.textContent=message;
+  if(scanWorkingTitle){
+   scanWorkingTitle.textContent=percent<50?"Preparing your photos":percent<82?"Sending the shelf securely":"Recognizing bottles";
+  }
+ }
 }
 function clearScanProgress(){
  const progress=document.getElementById("scanProgress");
@@ -127,6 +226,30 @@ function clearScanProgress(){
  progress.classList.add("hidden");
  progress.setAttribute("aria-hidden","true");
 }
+
+function setScanStage(stage){
+ const stages=["photos","analyse","confirm"];
+ const activeIndex=stages.indexOf(stage);
+ [
+  ["photos",scanStepPhotos],
+  ["analyse",scanStepAnalyse],
+  ["confirm",scanStepConfirm]
+ ].forEach(([name,node],index)=>{
+  if(!node)return;
+  node.classList.toggle("active",name===stage);
+  node.classList.toggle("complete",index<activeIndex);
+ });
+}
+
+function resetScannerView(){
+ scanCaptureCard.classList.remove("hidden");
+ scanWorkingCard.classList.add("hidden");
+ scanResultsCard.classList.add("hidden");
+ setScanStage("photos");
+ clearScanProgress();
+ scanStatus.textContent="";
+}
+
 
 
 window.showView=function showView(id){
@@ -138,7 +261,13 @@ window.showView=function showView(id){
   button.classList.toggle("active",active);
   button.setAttribute("aria-current",active?"page":"false");
  });
- window.scrollTo({top:0,behavior:window.matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"});
+ const reduced=window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+ window.scrollTo({top:0,behavior:reduced?"auto":"smooth"});
+ requestAnimationFrame(()=>{
+  const heading=target.querySelector("h2");
+  if(heading){heading.setAttribute("tabindex","-1");heading.focus({preventScroll:true});}
+  else document.getElementById("mainContent")?.focus({preventScroll:true});
+ });
 };
 document.querySelectorAll("[data-go]").forEach(b=>b.addEventListener("click",()=>showView(b.dataset.go)));
 
@@ -165,6 +294,107 @@ function renderHomeContext(){
  const topTaste=Object.entries(tasteProfile||{}).sort((a,b)=>Number(b[1])-Number(a[1]))[0];
  if(homeTasteContext)homeTasteContext.textContent=topTaste?`${titleCase(topTaste[0])} leaning`:"Taste learning";
 }
+
+let homeRecommendationId=null;
+let homeRecommendationOffset=0;
+let homePurchaseKey=null;
+
+function stableHomeScore(recipe){
+ let score=100-missingFor(recipe).length*34;
+ const hour=new Date().getHours();
+ const warm=weatherGuess()==="warm";
+ const evening=hour>=17;
+ if(warm&&recipe.tags.some(tag=>["refreshing","citrusy","bright","sparkling","long"].includes(tag)))score+=7;
+ if(!warm&&recipe.tags.some(tag=>["rich","spirit-forward","warming","herbal"].includes(tag)))score+=7;
+ if(evening&&recipe.tags.includes("spirit-forward"))score+=2;
+ if(favourites.includes(recipe.id))score+=8;
+ const prior=history.filter(item=>item.recipeId===recipe.id);
+ if(prior.some(item=>item.rating==="house-favourite"))score+=10;
+ if(prior.some(item=>item.rating==="not-for-me"))score-=25;
+ if(personalization.defaultStrength==="light"&&["light","low-abv"].some(tag=>recipe.tags.includes(tag)))score+=8;
+ if(personalization.defaultStrength==="strong"&&recipe.tags.includes("spirit-forward"))score+=8;
+ if(personalization.discovery==="familiar"&&prior.length)score+=7;
+ if(personalization.discovery==="adventurous"&&!prior.length&&!favourites.includes(recipe.id))score+=7;
+ for(const [tag,value] of Object.entries(tasteProfile||{})){
+  if(recipe.tags.includes(tag))score+=Number(value||0)*1.4;
+ }
+ for(const [tag,value] of Object.entries(manualPreferences||{})){
+  if(recipe.tags.includes(tag))score+=Number(value||0);
+ }
+ return score;
+}
+
+function homeRecommendationPool(){
+ const ready=availableRecipes();
+ const near=RECIPE_LIBRARY.filter(recipe=>missingFor(recipe).length===1);
+ return (ready.length?ready:near).slice().sort((a,b)=>stableHomeScore(b)-stableHomeScore(a));
+}
+
+function homeWhyReasons(recipe){
+ const missing=missingFor(recipe);
+ const reasons=[];
+ if(!missing.length)reasons.push("Everything needed is already in your bar.");
+ else reasons.push(`Only ${titleCase(missing[0])} is missing.`);
+ const topTaste=Object.entries(tasteProfile||{}).sort((a,b)=>Number(b[1])-Number(a[1]))[0];
+ if(topTaste&&recipe.tags.includes(topTaste[0]))reasons.push(`It matches your ${titleCase(topTaste[0]).toLowerCase()} preference.`);
+ if(weatherGuess()==="warm"&&recipe.tags.some(tag=>["refreshing","citrusy","bright","sparkling","long"].includes(tag))){
+  reasons.push("It suits a warmer evening.");
+ }
+ if(weatherGuess()==="cool"&&recipe.tags.some(tag=>["rich","spirit-forward","warming","herbal"].includes(tag))){
+  reasons.push("It suits a cooler evening.");
+ }
+ if(favourites.includes(recipe.id))reasons.push("You have saved it as a favourite.");
+ if(!reasons.some(reason=>reason.includes("preference"))&&recipe.tags.length){
+  reasons.push(`${titleCase(recipe.tags[0])} is a strong direction for tonight.`);
+ }
+ return reasons.slice(0,3);
+}
+
+function renderHomeRecommendation(){
+ const pool=homeRecommendationPool();
+ if(!pool.length){
+  homeRecommendationId=null;
+  homeRecommendationName.textContent="Build your bar";
+  homeRecommendationTags.textContent="Scan or add bottles to receive a recommendation.";
+  homeRecommendationStatus.textContent="Inventory needed";
+  homeRecommendationReasons.innerHTML="";
+  homeMakeBtn.textContent="Scan a shelf";
+  homeMakeBtn.onclick=()=>showView("scanView");
+  homeAnotherBtn.classList.add("hidden");
+  return;
+ }
+ const recipe=pool[homeRecommendationOffset%pool.length];
+ homeRecommendationId=recipe.id;
+ const missing=missingFor(recipe);
+ homeRecommendationName.textContent=recipe.name;
+ homeRecommendationTags.textContent=recipe.tags.slice(0,3).map(titleCase).join(" · ");
+ homeRecommendationStatus.textContent=missing.length?"One ingredient away":"Ready to make";
+ homeRecommendationStatus.classList.toggle("ready",missing.length===0);
+ const explanationSignals=recipePersonalSignals(recipe).slice(0,3);
+ homeRecommendationReasons.innerHTML=explanationSignals.map(signal=>`<div>
+  <span class="reason-icon">${signal.icon==="heart"?"♥":signal.icon==="moon"?"◐":signal.icon==="history"?"↺":"✓"}</span>
+  <p><strong>${escapeHtml(signal.title)}</strong><small>${escapeHtml(signal.detail)}</small></p>
+ </div>`).join("");
+ homeMakeBtn.textContent=missing.length?"View recipe":"Make this";
+ homeMakeBtn.onclick=()=>openRecipe(recipe.id);
+ homeAnotherBtn.classList.remove("hidden");
+ homeAnotherBtn.onclick=()=>{
+  homeRecommendationOffset=(homeRecommendationOffset+1)%pool.length;
+  renderHomeRecommendation();
+ };
+}
+
+function addHomePurchaseToShopping(){
+ if(!homePurchaseKey)return;
+ const name=titleCase(homePurchaseKey);
+ const unlock=calculateUnlocks().find(item=>item.key===homePurchaseKey);
+ if(!wishlist.some(item=>item.name.toLowerCase()===name.toLowerCase())){
+  wishlist.push({name,reason:`High-value addition · unlocks ${unlock?.gain||0} cocktails`});
+  save();
+ }
+ showToast(`${name} added to the shopping list.`);
+}
+
 function renderDashboard(){
  const iq=calculateBarIQ();
  const low=inventory.filter(x=>x.status==="low");
@@ -181,6 +411,7 @@ function renderDashboard(){
  if(capWithinReach)capWithinReach.textContent=withinReach;
  if(capShopping)capShopping.textContent=wishlist.length;
  renderHomeContext();
+ renderHomeRecommendation();
 
  if(!inventory.length){
   dashboardSummary.textContent="Scan your shelves to see what is ready now and what is one ingredient away.";
@@ -188,6 +419,8 @@ function renderDashboard(){
   insightBody.textContent="Scan one shelf at a time, then confirm the bottles the app identifies.";
   insightAction.textContent="Start inventory scan";
   insightAction.dataset.go="scanView";
+  insightShopAction.classList.add("hidden");
+  homePurchaseKey=null;
  }else{
   dashboardSummary.textContent=`${iq.available} ready now · ${withinReach} one ingredient away · ${iq.total} recipes in the curated library.`;
   if(replace.length){
@@ -195,16 +428,24 @@ function renderDashboard(){
    insightBody.textContent="It is marked for replacement and appears on your purchase list.";
    insightAction.textContent="View purchase list";
    insightAction.dataset.go="shoppingView";
+   insightShopAction.classList.add("hidden");
+   homePurchaseKey=null;
   }else if(unlocks.length){
-   insightTitle.textContent=`One bottle could unlock ${unlocks[0].gain} drinks`;
-   insightBody.textContent=`${titleCase(unlocks[0].key)} currently adds the most capability without duplicating your bar.`;
-   insightAction.textContent="See inventory analysis";
+   homePurchaseKey=unlocks[0].key;
+   insightTitle.textContent=titleCase(unlocks[0].key);
+   insightBody.textContent=`Adds ${unlocks[0].gain} cocktails and fills the largest current gap in your bar.`;
+   insightAction.textContent="See why";
    insightAction.dataset.go="barIqView";
+   insightShopAction.classList.remove("hidden");
+   insightShopAction.textContent="Add to shopping list";
+   insightShopAction.onclick=addHomePurchaseToShopping;
   }else{
    insightTitle.textContent="Your bar is broadly covered";
-   insightBody.textContent="Review the inventory spectrum for balance and fresh directions.";
+   insightBody.textContent="No single bottle creates a major jump. Explore the Bar Compass for a fresh direction.";
    insightAction.textContent="See inventory analysis";
    insightAction.dataset.go="barIqView";
+   insightShopAction.classList.add("hidden");
+   homePurchaseKey=null;
   }
  }
  insightAction.onclick=()=>showView(insightAction.dataset.go);
@@ -216,20 +457,164 @@ function renderDashboard(){
 }
 function bottleCard(x){return `<article class="bottle-card"><strong>${escapeHtml(x.name)}</strong><small>${escapeHtml(x.type)}</small><span class="status-pill ${statusClass(x.status)}">${statusLabel(x.status)}</span></article>`}
 
-function renderInventory(){
- const q=inventorySearch.value.trim().toLowerCase(),filter=inventoryFilter.value;
- const filtered=inventory.filter(x=>(filter==="all"||x.status===filter)&&[x.name,x.brand,x.type,x.notes].join(" ").toLowerCase().includes(q));
- inventoryList.innerHTML=filtered.length?filtered.map(x=>`
-  <article class="inventory-row">
-   <div class="inventory-item-copy">
-    <div class="inventory-title-line">
-     <h3>${escapeHtml(x.name)}</h3>
-     <span class="status-pill ${statusClass(x.status)}">${statusLabel(x.status)}</span>
-    </div>
-    <p>${escapeHtml([x.brand,x.type].filter(Boolean).join(" · "))}</p>
+
+const INVENTORY_FAMILIES=[
+ {id:"all",name:"All",types:[]},
+ {id:"gin",name:"Gin",types:["Gin"]},
+ {id:"whisky",name:"Whisky",types:["Canadian whisky","Scotch","Irish whiskey"]},
+ {id:"rum",name:"Rum",types:["Rum"]},
+ {id:"agave",name:"Agave",types:["Tequila"]},
+ {id:"brandy",name:"Brandy",types:["Brandy/Cognac"]},
+ {id:"liqueur",name:"Liqueurs",types:["Liqueur"]},
+ {id:"aperitif",name:"Aperitif",types:["Amaro/Aperitivo","Vermouth/Fortified wine"]},
+ {id:"other",name:"Other",types:["Vodka","Bitters","Mixer","Fresh ingredient","Other"]}
+];
+
+function inventoryFamilyFor(item){
+ return INVENTORY_FAMILIES.find(family=>family.types.includes(item.type))||INVENTORY_FAMILIES.at(-1);
+}
+
+function recipesUsingInventoryItem(item){
+ const text=[item.name,item.brand,item.type].join(" ").toLowerCase();
+ return RECIPE_LIBRARY.filter(recipe=>recipe.requires.some(key=>text.includes(key)||key.includes(text)));
+}
+
+function inventoryItemCard(item){
+ const family=inventoryFamilyFor(item);
+ const recipes=recipesUsingInventoryItem(item);
+ const ready=recipes.filter(recipe=>missingFor(recipe).length===0);
+ const note=item.notes?.trim();
+ return `<article class="bottle-card" tabindex="0" role="button" onclick="openBottleDetail('${item.id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openBottleDetail('${item.id}')}">
+  <div class="bottle-card-top">
+   <span class="bottle-family">${escapeHtml(family.name)}</span>
+   <span class="status-pill ${statusClass(item.status)}">${statusLabel(item.status)}</span>
+  </div>
+  <div class="bottle-card-art" aria-hidden="true">
+   <span class="bottle-shape ${family.id}"></span>
+  </div>
+  <div class="bottle-card-copy">
+   <h3>${escapeHtml(item.name)}</h3>
+   <p>${escapeHtml([item.brand,item.type].filter(Boolean).join(" · "))}</p>
+  </div>
+  <div class="bottle-card-metrics">
+   <span><strong>${ready.length}</strong> ready</span>
+   <span><strong>${recipes.length}</strong> recipes</span>
+  </div>
+  ${note?`<p class="bottle-card-note">${escapeHtml(note)}</p>`:""}
+ </article>`;
+}
+
+function renderInventoryFamilyNav(){
+ const counts=INVENTORY_FAMILIES.map(family=>({
+  ...family,
+  count:family.id==="all"?inventory.length:inventory.filter(item=>family.types.includes(item.type)).length
+ })).filter(family=>family.id==="all"||family.count>0);
+ inventoryFamilyNav.innerHTML=counts.map(family=>`
+  <button type="button" class="${activeInventoryFamily===family.id?"active":""}" data-family="${family.id}">
+   ${family.name}<span>${family.count}</span>
+  </button>`).join("");
+ inventoryFamilyNav.querySelectorAll("[data-family]").forEach(button=>button.addEventListener("click",()=>{
+  activeInventoryFamily=button.dataset.family;
+  renderInventory();
+ }));
+}
+
+window.openBottleDetail=id=>{
+ const item=inventory.find(entry=>entry.id===id);
+ if(!item)return;
+ const family=inventoryFamilyFor(item);
+ const recipes=recipesUsingInventoryItem(item);
+ const ready=recipes.filter(recipe=>missingFor(recipe).length===0);
+ bottleDetailContent.innerHTML=`
+  <section class="bottle-detail-hero">
+   <div class="bottle-detail-art"><span class="bottle-shape ${family.id}"></span></div>
+   <div>
+    <span class="eyebrow">${escapeHtml(family.name)}</span>
+    <h2>${escapeHtml(item.name)}</h2>
+    <p>${escapeHtml([item.brand,item.type].filter(Boolean).join(" · "))}</p>
+    <span class="status-pill ${statusClass(item.status)}">${statusLabel(item.status)}</span>
    </div>
-   <button class="inventory-edit-button" type="button" onclick="editItem('${x.id}')" aria-label="Edit ${escapeHtml(x.name)}">Edit</button>
-  </article>`).join(""):`<p class="helper">No inventory items match this view.</p>`;
+  </section>
+  <section class="bottle-detail-metrics">
+   <div><strong>${ready.length}</strong><span>Cocktails ready</span></div>
+   <div><strong>${recipes.length}</strong><span>Curated recipes</span></div>
+  </section>
+  <section class="bottle-detail-actions">
+   <button class="primary" type="button" onclick="editBottleFromDetail('${item.id}')">Edit bottle</button>
+   <button class="secondary" type="button" onclick="cycleBottleStatus('${item.id}')">Change status</button>
+  </section>
+  ${recipes.length?`<section class="bottle-detail-recipes">
+   <span class="eyebrow">Ready with this bottle</span>
+   <div>${ready.slice(0,6).map(recipe=>`<button type="button" onclick="openRecipe('${recipe.id}')">${escapeHtml(recipe.name)}</button>`).join("")||"<p>No complete recipes yet.</p>"}</div>
+  </section>`:""}
+  <section class="bottle-detail-notes">
+   <span class="eyebrow">Notes</span>
+   <p>${escapeHtml(item.notes||"No notes saved.")}</p>
+  </section>`;
+ bottleDetailDialog.showModal();
+};
+
+window.editBottleFromDetail=id=>{
+ bottleDetailDialog.close();
+ editItem(id);
+};
+
+window.cycleBottleStatus=id=>{
+ const item=inventory.find(entry=>entry.id===id);
+ if(!item)return;
+ const statuses=["good","low","replace"];
+ item.status=statuses[(statuses.indexOf(item.status)+1)%statuses.length];
+ save();
+ openBottleDetail(id);
+};
+
+bottleDetailClose.onclick=()=>bottleDetailDialog.close();
+bottleDetailDialog.addEventListener("click",event=>{if(event.target===bottleDetailDialog)bottleDetailDialog.close()});
+
+function renderInventory(){
+ const query=inventorySearch.value.trim().toLowerCase();
+ const statusFilter=inventoryFilter.value;
+ const sort=inventorySort.value;
+ const family=INVENTORY_FAMILIES.find(item=>item.id===activeInventoryFamily)||INVENTORY_FAMILIES[0];
+
+ let filtered=inventory.filter(item=>{
+  const matchesFamily=family.id==="all"||family.types.includes(item.type);
+  const matchesStatus=statusFilter==="all"||item.status===statusFilter;
+  const matchesQuery=[item.name,item.brand,item.type,item.notes].join(" ").toLowerCase().includes(query);
+  return matchesFamily&&matchesStatus&&matchesQuery;
+ });
+
+ filtered.sort((a,b)=>{
+  if(sort==="name")return a.name.localeCompare(b.name);
+  if(sort==="status"){
+   const rank={replace:0,low:1,good:2};
+   return rank[a.status]-rank[b.status]||a.name.localeCompare(b.name);
+  }
+  const familyCompare=inventoryFamilyFor(a).name.localeCompare(inventoryFamilyFor(b).name);
+  return familyCompare||a.name.localeCompare(b.name);
+ });
+
+ myBarBottleCount.textContent=inventory.length;
+ myBarLowCount.textContent=inventory.filter(item=>["low","replace"].includes(item.status)).length;
+ myBarFamilyCount.textContent=new Set(inventory.map(item=>inventoryFamilyFor(item).id)).size;
+ myBarReadyCount.textContent=availableRecipes().length;
+
+ const lowCount=inventory.filter(item=>["low","replace"].includes(item.status)).length;
+ myBarSummaryTitle.textContent=!inventory.length
+  ?"Your bar is waiting"
+  :lowCount
+   ?`${lowCount} bottle${lowCount===1?" needs":"s need"} attention`
+   :"Your bar is in good shape";
+
+ renderInventoryFamilyNav();
+ myBarEmptyGuide.classList.toggle("hidden",inventory.length>0);
+ inventoryList.innerHTML=filtered.length
+  ?filtered.map(inventoryItemCard).join("")
+  :`<div class="my-bar-no-results">
+    <span class="line-icon icon-search"></span>
+    <h3>No matching bottles</h3>
+    <p>Adjust the search, family or status filter.</p>
+   </div>`;
 }
 window.cycleStatus=id=>{const x=inventory.find(i=>i.id===id);x.status=x.status==="good"?"low":x.status==="low"?"replace":"good";save()};
 window.editItem=id=>openItemDialog(inventory.find(i=>i.id===id));
@@ -241,33 +626,224 @@ itemDialogClose?.addEventListener("click",()=>itemDialog.close());
 itemDialog?.addEventListener("click",event=>{if(event.target===itemDialog)itemDialog.close()});
 inventorySearch.oninput=renderInventory;
 inventoryFilter.onchange=renderInventory;
+inventorySort.onchange=renderInventory;
 
 function renderShopping(){
- const needs=inventory.filter(x=>x.status==="low"||x.status==="replace");
- purchaseList.innerHTML=needs.length?needs.map(x=>`<div class="shopping-row"><div><strong>${escapeHtml(x.name)}</strong><small>${statusLabel(x.status)}</small></div><div class="shopping-actions"><button onclick="markPurchased('${x.id}')">Purchased</button><button onclick="editItem('${x.id}')">Edit</button></div></div>`).join(""):`<div class="shopping-row"><span>Your automatic purchase list is clear.</span></div>`;
- wishlistList.innerHTML=wishlist.length?wishlist.map((x,i)=>`<div class="shopping-row"><div><strong>${escapeHtml(x.name)}</strong><small>${escapeHtml(x.reason||"Wishlist")}</small></div><div class="shopping-actions"><button onclick="buyWishlist(${i})">Purchased</button><button onclick="removeWishlist(${i})">Remove</button></div></div>`).join(""):`<div class="shopping-row"><span>No bottles on your wishlist.</span></div>`;
- const top=calculateUnlocks()[0];bestNextBottle.textContent=top?titleCase(top.key):"No obvious gap";bestNextReason.textContent=top?`It would unlock ${top.gain} cocktails immediately.`:"Your inventory already covers the current high-leverage ingredients."
+ const highValue=calculateUnlocks().filter(item=>!ignoredShopping.includes(item.key)).slice(0,8);
+ const needSoon=inventory.filter(item=>["low","replace"].includes(item.status)).map(item=>({
+  key:item.name.toLowerCase(),name:item.name,
+  reason:item.status==="replace"?"Replace soon":"Running low",gain:0,source:"inventory"
+ }));
+ const optional=calculateUnlocks().filter(item=>!ignoredShopping.includes(item.key)).slice(8,14);
+ const totalPotential=wishlist.reduce((sum,item)=>{
+  const match=(item.reason||"").match(/unlocks\s+(\d+)/i);
+  return sum+(match?Number(match[1]):0);
+ },0);
+
+ shoppingCountMetric.textContent=wishlist.length;
+ shoppingUnlockMetric.textContent=totalPotential;
+ shoppingReplaceMetric.textContent=needSoon.filter(item=>item.reason==="Replace soon").length;
+ shoppingImpactTitle.textContent=wishlist.length
+  ?`${wishlist.length} item${wishlist.length===1?"":"s"} on your Bottle List`
+  :"No bottles queued";
+ shoppingImpactBody.textContent=wishlist.length
+  ?`${totalPotential} potential cocktail${totalPotential===1?"":"s"} could be unlocked across the current list.`
+  :"Add a suggested bottle to see how much capability it could add.";
+
+ smartShoppingHighValue.innerHTML=highValue.length
+  ?highValue.map((item,index)=>shoppingSuggestionCard(item,index+1,"high")).join("")
+  :`<p class="helper">No high-value additions remain after your inventory and ignored items.</p>`;
+
+ smartShoppingNeedSoon.innerHTML=needSoon.length
+  ?needSoon.map(item=>shoppingSuggestionCard(item,null,"need")).join("")
+  :`<p class="helper">Nothing is currently marked low or ready to replace.</p>`;
+
+ smartShoppingOptional.innerHTML=optional.length
+  ?optional.map(item=>shoppingSuggestionCard(item,null,"optional")).join("")
+  :`<p class="helper">No additional optional suggestions are available right now.</p>`;
+
+ shoppingList.innerHTML=wishlist.length
+  ?wishlist.map((item,index)=>`
+   <article class="shopping-saved-row ${item.completed?"completed":""}">
+    <button class="shopping-check" type="button" onclick="toggleShoppingComplete(${index})" aria-label="Mark ${escapeHtml(item.name)} complete">${item.completed?"✓":""}</button>
+    <div><strong>${escapeHtml(item.name)}</strong><small>${escapeHtml(item.reason||"Saved item")}</small></div>
+    <button class="shopping-remove" type="button" onclick="removeWishlist(${index})" aria-label="Remove ${escapeHtml(item.name)}">×</button>
+   </article>`).join("")
+  :`<p class="helper">Your Bottle List is empty.</p>`;
 }
-window.markPurchased=id=>{const x=inventory.find(i=>i.id===id);if(x){x.status="good";save()}};
-window.removeWishlist=i=>{wishlist.splice(i,1);save()};window.buyWishlist=i=>{const x=wishlist[i];inventory.push({id:crypto.randomUUID(),name:x.name,brand:"",type:"Other",status:"good",notes:x.reason||""});wishlist.splice(i,1);save()};
-addWishlistBtn.onclick=()=>wishlistDialog.showModal();wishlistForm.onsubmit=e=>{e.preventDefault();wishlist.push({name:wishlistName.value.trim(),reason:wishlistReason.value.trim()});wishlistName.value="";wishlistReason.value="";wishlistDialog.close();save()};
+
+function shoppingSuggestionCard(item,rank,tier){
+ const key=item.key||item.name.toLowerCase();
+ const name=titleCase(item.name||item.key);
+ const gain=Number(item.gain||0);
+ const onList=wishlist.some(saved=>saved.name.toLowerCase()===name.toLowerCase());
+ const owned=inventory.some(inv=>[inv.name,inv.brand,inv.type].join(" ").toLowerCase().includes(key.toLowerCase()));
+ return `<article class="smart-shopping-card ${tier}">
+  <div class="shopping-rank">${rank||"•"}</div>
+  <div class="shopping-suggestion-copy">
+   <strong>${escapeHtml(name)}</strong>
+   <small>${tier==="need"?escapeHtml(item.reason):gain?`Unlocks ${gain} cocktails`:"Suggested addition"}</small>
+  </div>
+  <div class="shopping-suggestion-actions">
+   <button type="button" onclick="markShoppingOwned('${escapeHtml(key)}',${gain})" ${owned?"disabled":""}>${owned?"Owned":"Already have"}</button>
+   <button type="button" onclick="addShoppingSuggestion('${escapeHtml(key)}',${gain},'${tier}')" ${onList?"disabled":""}>${onList?"On list":"Shopping list"}</button>
+   ${tier!=="need"?`<button type="button" onclick="ignoreShoppingSuggestion('${escapeHtml(key)}')">Ignore</button>`:""}
+  </div>
+ </article>`;
+}
+
+window.addShoppingSuggestion=(key,gain,tier)=>{
+ const name=titleCase(key);
+ if(!wishlist.some(item=>item.name.toLowerCase()===name.toLowerCase())){
+  wishlist.push({name,reason:tier==="need"?"Replacement or running-low item":`High-value addition · unlocks ${gain} cocktails`,completed:false});
+  save();
+  gentleFeedback(12);
+ showToast(`${name} added to the Bottle List.`);
+ }else showToast(`${name} is already on the Bottle List.`);
+};
+
+window.markShoppingOwned=(key,gain)=>{
+ const name=titleCase(key);
+ const exists=inventory.some(item=>[item.name,item.brand,item.type].join(" ").toLowerCase().includes(key.toLowerCase()));
+ if(!exists){
+  inventory.push({id:crypto.randomUUID(),name,brand:"",type:guessInventoryType(key),status:"good",notes:"Added from Smart Shopping"});
+ }
+ wishlist=wishlist.filter(item=>item.name.toLowerCase()!==name.toLowerCase());
+ ignoredShopping=ignoredShopping.filter(item=>item!==key);
+ save();
+ showToast(exists?`${name} is already in My Bar.`:`${name} added to My Bar.`);
+};
+
+window.ignoreShoppingSuggestion=key=>{
+ if(!ignoredShopping.includes(key))ignoredShopping.push(key);
+ localStorage.setItem(SHOPPING_IGNORE_KEY,JSON.stringify(ignoredShopping));
+ renderShopping();
+ showToast(`${titleCase(key)} hidden from suggestions.`);
+};
+
+window.toggleShoppingComplete=index=>{
+ if(!wishlist[index])return;
+ wishlist[index].completed=!wishlist[index].completed;
+ save();
+};
+
+clearCompletedShopping.onclick=()=>{
+ const before=wishlist.length;
+ wishlist=wishlist.filter(item=>!item.completed);
+ save();
+ showToast(before===wishlist.length?"No completed items to clear.":"Completed items cleared.");
+};
+window.markPurchased=id=>{
+ const item=inventory.find(entry=>entry.id===id);
+ if(item){item.status="good";save();}
+};
+window.removeWishlist=index=>{wishlist.splice(index,1);save()};
+window.buyWishlist=index=>{
+ const item=wishlist[index];
+ if(!item)return;
+ inventory.push({id:crypto.randomUUID(),name:item.name,brand:"",type:guessInventoryType(item.name),status:"good",notes:item.reason||""});
+ wishlist.splice(index,1);
+ save();
+};
+addWishlistBtn.onclick=()=>wishlistDialog.showModal();
+wishlistForm.onsubmit=event=>{
+ event.preventDefault();
+ const name=wishlistName.value.trim();
+ if(!name)return;
+ wishlist.push({name,reason:wishlistReason.value.trim()||"Manually added",completed:false});
+ wishlistName.value="";
+ wishlistReason.value="";
+ wishlistDialog.close();
+ save();
+};
 
 
 const INVENTORY_GROUPS=[
- {name:"Gin",types:["Gin"],colour:"#9c3340"},
- {name:"Whisky",types:["Canadian whisky","Scotch","Irish whiskey"],colour:"#c58a42"},
- {name:"Rum",types:["Rum"],colour:"#5c8a85"},
- {name:"Agave",types:["Tequila"],colour:"#6c7db0"},
- {name:"Brandy",types:["Brandy/Cognac"],colour:"#a66f55"},
- {name:"Liqueurs",types:["Liqueur","Amaro/Aperitivo","Vermouth/Fortified wine"],colour:"#9b6c9e"},
- {name:"Bitters & Mixers",types:["Bitters","Mixer","Fresh ingredient","Other"],colour:"#8b9692"}
+ {id:"gin",name:"Gin",types:["Gin"],colour:"#0f7778",keys:["gin"]},
+ {id:"whisky",name:"Whisky",types:["Canadian whisky","Scotch","Irish whiskey"],colour:"#b67c3d",keys:["whisky","rye","bourbon","scotch","irish whiskey"]},
+ {id:"rum",name:"Rum",types:["Rum"],colour:"#4d8f82",keys:["rum","white rum","dark rum","aged rum"]},
+ {id:"agave",name:"Agave",types:["Tequila"],colour:"#6b75ad",keys:["tequila","mezcal"]},
+ {id:"brandy",name:"Brandy",types:["Brandy/Cognac"],colour:"#a05f4b",keys:["brandy","cognac"]},
+ {id:"liqueurs",name:"Liqueurs",types:["Liqueur"],colour:"#93659b",keys:["liqueur","orange liqueur","elderflower liqueur","maraschino","coffee liqueur"]},
+ {id:"aperitif",name:"Aperitif",types:["Amaro/Aperitivo","Vermouth/Fortified wine"],colour:"#b04b57",keys:["campari","aperol","amaro","sweet vermouth","dry vermouth","vermouth"]},
+ {id:"bitters",name:"Bitters & Mixers",types:["Bitters","Mixer","Fresh ingredient","Other"],colour:"#788783",keys:["bitters","tonic","soda","ginger beer"]}
 ];
 
+let activeCompassGroup=null;
+
 function inventoryComposition(){
- return INVENTORY_GROUPS.map(group=>({
-  ...group,
-  count:inventory.filter(item=>item.status!=="replace"&&group.types.includes(item.type)).length
- })).filter(group=>group.count>0);
+ return INVENTORY_GROUPS.map(group=>{
+  const bottles=inventory.filter(item=>item.status!=="replace"&&group.types.includes(item.type));
+  return {...group,count:bottles.length,bottles};
+ }).filter(group=>group.count>0);
+}
+
+function recipesForCompassGroup(group){
+ return RECIPE_LIBRARY.filter(recipe=>
+  recipe.requires.some(key=>group.keys.some(groupKey=>key.includes(groupKey)||groupKey.includes(key)))
+ );
+}
+
+function compassGroupStats(group){
+ const recipes=recipesForCompassGroup(group);
+ const ready=recipes.filter(recipe=>missingFor(recipe).length===0);
+ const near=recipes.filter(recipe=>missingFor(recipe).length===1);
+ const gaps={};
+ recipes.forEach(recipe=>{
+  missingFor(recipe).forEach(key=>{gaps[key]=(gaps[key]||0)+1});
+ });
+ const bestGap=Object.entries(gaps)
+  .filter(([key])=>!group.keys.some(groupKey=>key.includes(groupKey)))
+  .sort((a,b)=>b[1]-a[1])[0];
+ return {recipes,ready,near,bestGap};
+}
+
+function compassSegmentButton(group,index,total){
+ const angle=index*(360/total);
+ return `<button type="button" class="compass-segment" style="--segment-colour:${group.colour};--segment-angle:${angle}deg" data-compass-group="${group.id}" aria-label="${group.name}: ${group.count} bottles">
+  <span></span>
+ </button>`;
+}
+
+function renderCompassDetail(group){
+ const detail=document.getElementById("compassDetail");
+ const reset=document.getElementById("resetCompassBtn");
+ if(!detail||!reset)return;
+ if(!group){
+  detail.classList.add("hidden");
+  reset.classList.add("hidden");
+  return;
+ }
+ const stats=compassGroupStats(group);
+ activeCompassGroup=group.id;
+ reset.classList.remove("hidden");
+ detail.classList.remove("hidden");
+ detail.innerHTML=`
+  <div class="compass-detail-header">
+   <div>
+    <span class="eyebrow">${group.name}</span>
+    <h3>${group.count} bottle${group.count===1?"":"s"} · ${stats.ready.length} cocktails ready</h3>
+   </div>
+   <span class="compass-detail-dot" style="background:${group.colour}"></span>
+  </div>
+  <div class="compass-detail-metrics">
+   <div><strong>${stats.ready.length}</strong><span>Ready now</span></div>
+   <div><strong>${stats.near.length}</strong><span>One ingredient away</span></div>
+   <div><strong>${stats.recipes.length}</strong><span>Curated recipes</span></div>
+  </div>
+  <div class="compass-bottles">
+   ${group.bottles.slice(0,6).map(item=>`<span>${escapeHtml(item.name)}</span>`).join("")||"<span>No bottles recorded</span>"}
+  </div>
+  ${stats.bestGap?`<div class="compass-gap">
+   <div><span class="eyebrow">Best next addition</span><strong>${titleCase(stats.bestGap[0])}</strong><small>Supports ${stats.bestGap[1]} recipes in this direction.</small></div>
+   <button type="button" onclick="addUnlockToShopping('${escapeHtml(stats.bestGap[0])}',${stats.bestGap[1]})">Shopping list</button>
+  </div>`:""}
+  <div class="compass-ready-list">
+   ${stats.ready.slice(0,4).map(recipe=>`<button type="button" onclick="openRecipe('${recipe.id}')">${escapeHtml(recipe.name)}</button>`).join("")}
+  </div>`;
+ document.querySelectorAll("[data-compass-group]").forEach(button=>{
+  button.classList.toggle("active",button.dataset.compassGroup===group.id);
+ });
 }
 
 function renderInventoryAnalysis(){
@@ -275,25 +851,32 @@ function renderInventoryAnalysis(){
  const total=composition.reduce((sum,group)=>sum+group.count,0);
  if(!inventoryWheel||!inventoryLegend||!cocktailSpectrum)return;
 
+ inventoryWheelLabel.textContent=total;
  if(!total){
-  inventoryWheel.style.background="#eceef0";
-  inventoryWheelLabel.textContent="No inventory";
-  inventoryLegend.innerHTML='<p class="helper">Scan or add bottles to see your bar composition.</p>';
+  inventoryWheel.innerHTML='<div class="compass-empty">Scan your bar</div>';
+  inventoryLegend.innerHTML='<p class="helper">Scan or add bottles to see your Bar Compass.</p>';
+  renderCompassDetail(null);
  }else{
-  let cursor=0;
-  const segments=composition.map(group=>{
-   const start=cursor;
-   cursor+=group.count/total*360;
-   return `${group.colour} ${start}deg ${cursor}deg`;
-  });
-  inventoryWheel.style.background=`conic-gradient(${segments.join(",")})`;
-  inventoryWheelLabel.textContent=`${total} items`;
-  inventoryLegend.innerHTML=composition.map(group=>`
-   <div class="legend-row">
+  inventoryWheel.innerHTML=composition.map((group,index)=>compassSegmentButton(group,index,composition.length)).join("");
+  inventoryLegend.innerHTML=composition.map(group=>{
+   const stats=compassGroupStats(group);
+   return `<button type="button" class="compass-legend-row" data-compass-legend="${group.id}">
     <span class="legend-swatch" style="background:${group.colour}"></span>
-    <strong>${group.name}</strong>
-    <span>${group.count}</span>
-   </div>`).join("");
+    <span><strong>${group.name}</strong><small>${stats.ready.length} ready · ${stats.near.length} near</small></span>
+    <strong>${group.count}</strong>
+   </button>`;
+  }).join("");
+
+  document.querySelectorAll("[data-compass-group],[data-compass-legend]").forEach(button=>{
+   button.addEventListener("click",()=>{
+    const id=button.dataset.compassGroup||button.dataset.compassLegend;
+    renderCompassDetail(composition.find(group=>group.id===id));
+   });
+  });
+  if(activeCompassGroup){
+   const selected=composition.find(group=>group.id===activeCompassGroup);
+   renderCompassDetail(selected||null);
+  }
  }
 
  const ready=availableRecipes();
@@ -311,12 +894,18 @@ function renderInventoryAnalysis(){
  }));
  const maximum=Math.max(1,...counts.map(item=>item.count));
  cocktailSpectrum.innerHTML=counts.map(item=>`
-  <div class="spectrum-row">
+  <button type="button" class="spectrum-row" data-spectrum="${item.label}">
    <span>${item.label}</span>
    <div class="spectrum-track"><i style="width:${Math.round(item.count/maximum*100)}%"></i></div>
    <strong>${item.count}</strong>
-  </div>`).join("");
+  </button>`).join("");
 }
+
+document.getElementById("resetCompassBtn")?.addEventListener("click",()=>{
+ activeCompassGroup=null;
+ renderCompassDetail(null);
+ document.querySelectorAll("[data-compass-group]").forEach(button=>button.classList.remove("active"));
+});
 
 function renderStaplesMenu(){
  if(!staplesMenu)return;
@@ -348,7 +937,7 @@ function renderStaplesMenu(){
 function renderBarIQ(){
  const iq=calculateBarIQ();barIqScore.textContent=iq.score;document.querySelector(".score-ring").style.setProperty("--score",`${iq.score}%`);
  barIqLabel.textContent=iq.score>=80?"Highly capable":iq.score>=60?"Well rounded":iq.score>=40?"Developing":"Early-stage bar";
- barIqSummary.textContent=`You can make ${iq.available} of ${iq.total} curated cocktails. Bar IQ rewards capability, balance and bottle maintenance.`;
+ barIqSummary.textContent=`You can make ${iq.available} of ${iq.total} curated cocktails. The Bar Compass rewards capability, balance and bottle maintenance.`;
  programmeScores.innerHTML=iq.coverage.map(x=>`<div class="programme-row"><strong>${x.name}</strong><div class="bar-track"><div class="bar-fill" style="width:${x.score}%"></div></div><span>${x.score}</span></div>`).join("");
  const unlocks=calculateUnlocks().slice(0,8);
  unlockList.innerHTML=unlocks.length?unlocks.map(x=>`
@@ -399,7 +988,8 @@ function getRecommendations(turnTide=false){
  const ranked=unseen.sort((a,b)=>scoreRecipe(b)-scoreRecipe(a));
  recommendationSet=ranked.slice(0,3);
  sessionSeen.push(...recommendationSet.map(r=>r.id));sessionStorage.setItem("ttt_phase2_seen",JSON.stringify(sessionSeen));
- renderRecommendationCards()
+ renderRecommendationCards();
+ renderHomeRecommendation();
 }
 function renderRecommendationControls(){
  moodGrid.innerHTML=moodOptions.map(([id,label])=>`<button class="choice-btn ${id===selectedMood?"active":""}" onclick="selectMood('${id}')">${label}</button>`).join("");
@@ -421,50 +1011,355 @@ function renderRecommendationCards(){
    <span class="recommendation-arrow">→</span></article>`
  }).join("")
 }
+
+
+function recipeMeasures(item){
+ const metricFirst=measurementSystem==="metric";
+ return {
+  primary:metricFirst?item.metric:item.imperial,
+  secondary:metricFirst?item.imperial:item.metric,
+  primaryLabel:metricFirst?"Metric":"Imperial",
+  secondaryLabel:metricFirst?"Imperial":"Metric"
+ };
+}
+
+function renderMeasurementControls(){
+ document.querySelectorAll("[data-measurement-choice]").forEach(button=>{
+  const active=button.dataset.measurementChoice===measurementSystem;
+  button.classList.toggle("active",active);
+  button.setAttribute("aria-pressed",active?"true":"false");
+ });
+}
+
+document.querySelectorAll("[data-measurement-choice]").forEach(button=>{
+ button.addEventListener("click",()=>{
+  measurementSystem=button.dataset.measurementChoice;
+  localStorage.setItem(MEASUREMENT_KEY,measurementSystem);
+  renderMeasurementControls();
+  showToast(`${measurementSystem==="metric"?"Metric":"Imperial"} measurements selected.`);
+  if(recipeDialog.open&&recipeDialog.dataset.recipeId)openRecipe(recipeDialog.dataset.recipeId);
+ });
+});
+
+function recipeHistorySummary(recipe){
+ const entries=history.filter(entry=>entry.recipeId===recipe.id);
+ const last=entries.slice().sort((a,b)=>new Date(b.date)-new Date(a.date))[0];
+ const favouriteCount=entries.filter(entry=>entry.rating==="house-favourite").length;
+ return {
+  count:entries.length,
+  last,
+  favouriteCount
+ };
+}
+
+
+function currentDaypart(){
+ const hour=new Date().getHours();
+ if(hour<11)return "morning";
+ if(hour<16)return "afternoon";
+ if(hour<20)return "evening";
+ return "late evening";
+}
+
+function currentSeason(){
+ const month=new Date().getMonth()+1;
+ if([12,1,2].includes(month))return "winter";
+ if([3,4,5].includes(month))return "spring";
+ if([6,7,8].includes(month))return "summer";
+ return "autumn";
+}
+
+function recentRecipeTags(limit=8){
+ const recent=history.slice().sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,limit);
+ const tags=[];
+ recent.forEach(entry=>{
+  const recipe=RECIPE_LIBRARY.find(item=>item.id===entry.recipeId);
+  if(recipe)tags.push(...recipe.tags);
+ });
+ return tags;
+}
+
+function recipePersonalSignals(recipe){
+ const signals=[];
+ const missing=missingFor(recipe);
+ const ready=missing.length===0;
+ const daypart=currentDaypart();
+ const season=currentSeason();
+ const recentTags=recentRecipeTags();
+ const repeatedTags=recipe.tags.filter(tag=>recentTags.includes(tag));
+ const lastMade=history
+  .filter(entry=>entry.recipeId===recipe.id)
+  .slice()
+  .sort((a,b)=>new Date(b.date)-new Date(a.date))[0];
+
+ if(ready)signals.push({
+  icon:"check",
+  title:"Ready now",
+  detail:"Every required ingredient is already in your bar."
+ });
+ else if(missing.length===1)signals.push({
+  icon:"plus",
+  title:"Within reach",
+  detail:`Only ${titleCase(missing[0])} is missing.`
+ });
+
+ if(daypart==="late evening"&&recipe.tags.some(tag=>["spirit-forward","rich","after-dinner","herbal"].includes(tag))){
+  signals.push({
+   icon:"moon",
+   title:"Right for the hour",
+   detail:"Its slower, more contemplative style suits a late evening."
+  });
+ }else if(daypart==="evening"&&recipe.tags.some(tag=>["refreshing","sparkling","citrusy","bright"].includes(tag))){
+  signals.push({
+   icon:"sunset",
+   title:"Good evening fit",
+   detail:"It stays lively without feeling like an early-afternoon drink."
+  });
+ }
+
+ if(season==="summer"&&recipe.tags.some(tag=>["refreshing","sparkling","citrusy","tropical","long"].includes(tag))){
+  signals.push({
+   icon:"season",
+   title:"Seasonal match",
+   detail:"Its brighter profile fits summer drinking."
+  });
+ }
+ if(season==="winter"&&recipe.tags.some(tag=>["rich","warming","spirit-forward","herbal"].includes(tag))){
+  signals.push({
+   icon:"season",
+   title:"Seasonal match",
+   detail:"Its depth and warmth suit winter."
+  });
+ }
+
+ if(favourites.includes(recipe.id))signals.push({
+  icon:"heart",
+  title:"Known favourite",
+  detail:"You have saved this as a House Favourite."
+ });
+
+ if(lastMade)signals.push({
+  icon:"history",
+  title:"Familiar territory",
+  detail:`You last made it on ${new Date(lastMade.date).toLocaleDateString(undefined,{month:"short",day:"numeric"})}.`
+ });
+
+ const topTaste=Object.entries(tasteProfile||{}).sort((a,b)=>Number(b[1])-Number(a[1]))[0];
+ if(topTaste&&recipe.tags.includes(topTaste[0]))signals.push({
+  icon:"taste",
+  title:"Taste match",
+  detail:`It aligns with your preference for ${titleCase(topTaste[0]).toLowerCase()} drinks.`
+ });
+
+ if(repeatedTags.length&&history.length>=3){
+  const tag=titleCase(repeatedTags[0]).toLowerCase();
+  signals.push({
+   icon:"pattern",
+   title:"Fits your pattern",
+   detail:`Recent drinks suggest you are leaning toward ${tag} profiles.`
+  });
+ }
+
+ if(!signals.length){
+  signals.push({
+   icon:"compass",
+   title:"A strong direction",
+   detail:`Its ${titleCase(recipe.tags[0]||"balanced").toLowerCase()} profile is a sensible match for tonight.`
+  });
+ }
+ return signals.slice(0,4);
+}
+
+function recipeNarrative(recipe){
+ const signals=recipePersonalSignals(recipe);
+ const first=signals[0]?.detail||"It fits your bar and the moment.";
+ const second=signals[1]?.detail;
+ return second?`${first} ${second}`:first;
+}
+
+function explanationConfidence(recipe){
+ let score=52;
+ if(missingFor(recipe).length===0)score+=18;
+ if(favourites.includes(recipe.id))score+=10;
+ if(history.some(entry=>entry.recipeId===recipe.id))score+=8;
+ const topTaste=Object.entries(tasteProfile||{}).sort((a,b)=>Number(b[1])-Number(a[1]))[0];
+ if(topTaste&&recipe.tags.includes(topTaste[0]))score+=8;
+ return Math.min(96,score);
+}
+
+function recipeWhyTonight(recipe){
+ return recipePersonalSignals(recipe).map(signal=>signal.detail);
+}
+
+function bartenderNote(recipe){
+ const tags=new Set(recipe.tags);
+ if(recipe.requires.includes("mint"))return "Press mint gently. Aggressive muddling releases bitterness and makes the drink look tired.";
+ if(recipe.requires.includes("sparkling wine"))return "Chill the sparkling wine well and add it last to preserve the bubbles.";
+ if(recipe.method==="stirred")return "Use plenty of cold ice and stir until the mixing glass feels properly chilled.";
+ if(recipe.method==="shaken"&&recipe.requires.some(key=>["lemon","lime","grapefruit"].includes(key))){
+  return "Shake hard with cold ice, then strain promptly so the citrus stays bright.";
+ }
+ if(tags.has("spirit-forward"))return "Dilution matters. Give the drink enough stirring time before deciding it is too strong.";
+ return "Measure carefully the first time. Adjust sweetness or dilution only after tasting the finished drink.";
+}
+
+function recipeTimeEstimate(recipe){
+ if(recipe.method==="built")return "4 min";
+ if(recipe.method==="stirred")return "5 min";
+ return "6 min";
+}
+
+window.toggleRecipeFavourite=id=>{
+ if(favourites.includes(id))favourites=favourites.filter(item=>item!==id);
+ else favourites.push(id);
+ save();
+ openRecipe(id);
+ gentleFeedback(favourites.includes(id)?[10,30,16]:8);
+ if(favourites.includes(id))celebrateMoment("House Favourite");
+ showToast(favourites.includes(id)?"Saved as a House Favourite.":"Removed from House Favourites.");
+};
+
+window.shopRecipeMissing=id=>{
+ const recipe=RECIPE_LIBRARY.find(item=>item.id===id);
+ const missing=missingFor(recipe);
+ if(!missing.length){
+  showToast("You already have everything needed.");
+  return;
+ }
+ missing.forEach(key=>{
+  const name=titleCase(key);
+  if(!wishlist.some(item=>item.name.toLowerCase()===name.toLowerCase())){
+   wishlist.push({name,reason:`Needed for ${recipe.name}`,completed:false});
+  }
+ });
+ save();
+ showToast(`${missing.length} missing item${missing.length===1?"":"s"} added to the shopping list.`);
+};
+
 window.openRecipe=id=>{
- const r=RECIPE_LIBRARY.find(x=>x.id===id),missing=missingFor(r);
- const ingredientRows=r.ingredients.map(x=>`<div class="recipe-ingredient ${hasIngredient(x.key)?"owned":"needed"}"><span>${escapeHtml(x.ingredient)}</span><strong>${escapeHtml(x.imperial)} <small>/ ${escapeHtml(x.metric)}</small></strong></div>`).join("");
+ const r=RECIPE_LIBRARY.find(item=>item.id===id);
+ if(!r)return;
+ const missing=missingFor(r);
+ const ready=missing.length===0;
+ const historySummary=recipeHistorySummary(r);
+ const why=recipeWhyTonight(r);
+ const lastNote=historySummary.last?.notes?.trim();
+ const ingredientRows=r.ingredients.map(item=>{
+  const owned=hasIngredient(item.key);
+  const measures=recipeMeasures(item);
+  return `<div class="workbench-ingredient ${owned?"owned":"missing"}">
+   <span class="ingredient-state" aria-hidden="true">${owned?"✓":"+"}</span>
+   <div class="ingredient-name">
+    <strong>${escapeHtml(item.ingredient)}</strong>
+    <small>${owned?"In your bar":"Missing"}</small>
+   </div>
+   <div class="ingredient-measure">
+    <strong>${escapeHtml(measures.primary)}</strong>
+    <small>${escapeHtml(measures.secondary)}</small>
+   </div>
+  </div>`;
+ }).join("");
+
  recipeDialogContent.innerHTML=`
- <article class="mobile-recipe">
-  <header class="recipe-hero">
-   <span class="eyebrow light">${escapeHtml(r.source_info.designation)}</span>
-   <h2>${escapeHtml(r.name)}</h2>
-   <p>${r.tags.slice(0,4).map(titleCase).join(" · ")}</p>
+ <article class="recipe-workbench">
+  <header class="workbench-header">
+   <div class="workbench-title-row">
+    <div>
+     <span class="eyebrow">${escapeHtml(r.source_info.designation)}</span>
+     <h2 class="recipe-name">${escapeHtml(r.name)}</h2>
+     <p>${r.tags.slice(0,3).map(titleCase).join(" · ")}</p>
+    </div>
+    <button class="recipe-heart ${favourites.includes(r.id)?"active":""}" type="button"
+      onclick="toggleRecipeFavourite('${r.id}')" aria-label="Toggle House Favourite">♡</button>
+   </div>
+   <div class="workbench-status ${ready?"ready":"missing"}">
+    <span>${ready?"✓":"!"}</span>
+    <strong>${ready?"Ready to make":`${missing.length} missing`}</strong>
+   </div>
   </header>
-  <div class="recipe-facts">
-   <div><small>Serving</small><strong>${escapeHtml(r.serving_size)}</strong></div>
-   <div><small>Strength</small><strong>${titleCase(r.strength)}</strong></div>
-   <div><small>Method</small><strong>${titleCase(r.method)}</strong></div>
-  </div>
-  <section class="recipe-section">
-   <div class="recipe-section-title"><span>Ingredients</span><small>${missing.length?`${missing.length} missing`:"Ready to make"}</small></div>
-   ${ingredientRows}
+
+  <section class="workbench-why">
+   <div class="why-header">
+    <span class="eyebrow">Why tonight?</span>
+    <span class="confidence-pill">${explanationConfidence(r)}% fit</span>
+   </div>
+   <p class="why-narrative">${escapeHtml(recipeNarrative(r))}</p>
+   <div class="why-signal-list">
+    ${recipePersonalSignals(r).map(signal=>`<div class="why-signal">
+      <span>${signal.icon==="heart"?"♥":signal.icon==="moon"?"◐":signal.icon==="history"?"↺":signal.icon==="taste"?"◎":"✓"}</span>
+      <div><strong>${escapeHtml(signal.title)}</strong><p>${escapeHtml(signal.detail)}</p></div>
+    </div>`).join("")}
+   </div>
   </section>
-  <section class="recipe-section">
-   <h3>Preparation</h3>
-   <ol class="recipe-steps">${r.instructions.map(x=>`<li>${escapeHtml(x)}</li>`).join("")}</ol>
-  </section>
-  <div class="service-grid">
-   <div><small>Glassware</small><strong>${escapeHtml(r.glassware)}</strong></div>
+
+  <section class="workbench-facts" aria-label="Recipe essentials">
+   <div><small>Glass</small><strong>${escapeHtml(r.glassware)}</strong></div>
    <div><small>Ice</small><strong>${escapeHtml(r.ice)}</strong></div>
-   <div><small>Garnish</small><strong>${escapeHtml(r.garnish)}</strong></div>
-  </div>
-  <section class="recipe-section substitution-box">
-   <h3>Substitution guidance</h3>
-   <ul>${r.substitutions.map(x=>`<li>${escapeHtml(x)}</li>`).join("")}</ul>
+   <div><small>Method</small><strong>${titleCase(r.method)}</strong></div>
+   <div><small>Time</small><strong>${recipeTimeEstimate(r)}</strong></div>
   </section>
-  <section class="recipe-section source-box">
-   <span class="eyebrow">Recipe source</span>
+
+  <section class="workbench-section">
+   <div class="workbench-section-heading">
+    <div><span class="eyebrow">You’ll need</span><h3>Ingredients</h3></div>
+    <small>${measurementSystem==="metric"?"Metric first":"Imperial first"} · ${escapeHtml(r.serving_size)}</small>
+   </div>
+   <div class="workbench-ingredients">${ingredientRows}</div>
+  </section>
+
+  <section class="workbench-section">
+   <div class="workbench-section-heading">
+    <div><span class="eyebrow">Method</span><h3>Make the drink</h3></div>
+   </div>
+   <ol class="workbench-steps">
+    ${r.instructions.map((instruction,index)=>`<li>
+      <span>${index+1}</span>
+      <p>${escapeHtml(instruction)}</p>
+    </li>`).join("")}
+   </ol>
+  </section>
+
+  <section class="workbench-note">
+   <span class="eyebrow">Bartender’s note</span>
+   <p>${escapeHtml(bartenderNote(r))}</p>
+  </section>
+
+  <section class="workbench-service">
+   <div><small>Garnish</small><strong>${escapeHtml(r.garnish)}</strong></div>
+   <div><small>Strength</small><strong>${titleCase(r.strength)}</strong></div>
+  </section>
+
+  ${missing.length?`<details class="workbench-details">
+   <summary>Substitutions</summary>
+   <ul>${r.substitutions.map(item=>`<li>${escapeHtml(item)}</li>`).join("")}</ul>
+  </details>`:""}
+
+  ${historySummary.count||lastNote?`<section class="workbench-history">
+   <span class="eyebrow">Your history</span>
+   <div class="history-summary-grid">
+    <div><strong>${historySummary.count}</strong><small>Times made</small></div>
+    <div><strong>${historySummary.favouriteCount}</strong><small>Favourite ratings</small></div>
+   </div>
+   ${lastNote?`<blockquote>${escapeHtml(lastNote)}</blockquote>`:""}
+  </section>`:""}
+
+  <details class="workbench-details source-details">
+   <summary>Recipe source and validation</summary>
    <h3>${escapeHtml(r.source_info.source)}</h3>
    <p>${escapeHtml(r.source_info.note)}</p>
    <small>${escapeHtml(r.validation.review_status)}</small>
-  </section>
-  <div class="sticky-recipe-actions">
-   <button class="secondary" type="button" onclick="addMissingToWishlist('${r.id}')">Add missing</button>
-   <button class="primary" type="button" onclick="madeThis('${r.id}')">I made this</button>
+  </details>
+
+  <div class="workbench-actions">
+   <button class="tertiary-action" type="button" onclick="toggleRecipeFavourite('${r.id}')">
+    ${favourites.includes(r.id)?"Saved":"Favourite"}
+   </button>
+   ${missing.length?`<button class="secondary" type="button" onclick="shopRecipeMissing('${r.id}')">Shop missing</button>`:""}
+   <button class="primary" type="button" onclick="madeThis('${r.id}')">Made it</button>
   </div>
  </article>`;
- recipeDialog.showModal()
+ recipeDialog.dataset.recipeId=r.id;
+ recipeDialog.showModal();
 };
 window.addMissingToWishlist=id=>{const r=RECIPE_LIBRARY.find(x=>x.id===id);missingFor(r).forEach(x=>{if(!wishlist.some(w=>w.name.toLowerCase()===x))wishlist.push({name:titleCase(x),reason:`Needed for ${r.name}`})});recipeDialog.close();save()};
 window.madeThis=id=>{activeRatingRecipe=id;recipeDialog.close();ratingDialog.showModal()};
@@ -539,31 +1434,209 @@ function renderPreferenceSliders(){
 }
 window.setManualPreference=(tag,val)=>{manualPreferences[tag]=Number(val);localStorage.setItem(MANUAL_PREF_KEY,JSON.stringify(manualPreferences));renderTaste();getRecommendations()};
 
-function renderTaste(){
- const confidence=confidenceScore();
- tasteConfidence.textContent=`${confidence}%`;
- tasteConfidenceLabel.textContent=confidence<25?"Early learning":confidence<60?"Developing profile":confidence<85?"Reliable profile":"High confidence";
- ratedCount.textContent=history.length;
- favouriteCount.textContent=favourites.length;
 
- const ranked=Object.entries(taste).sort((a,b)=>b[1]-a[1]);
- tasteProfile.innerHTML=ranked.length?ranked.slice(0,12).map(([tag,val])=>`<div class="taste-chip ${val<0?"negative":""}">${titleCase(tag)} <strong>${val>0?"+":""}${Math.round(val)}</strong></div>`).join(""):`<p class="helper">Make and rate a few cocktails to teach the app your palate.</p>`;
- tasteRadar.innerHTML=TASTE_DIMENSIONS.map(tag=>{
-   const value=tasteValue(tag);
-   return `<div class="taste-axis"><strong>${value>0?"+":""}${value}</strong><small>${titleCase(tag)}</small></div>`
+const PROFILE_PROFILE_TASTE_DIMENSIONS=[
+ {id:"citrusy",label:"Citrusy",tags:["citrusy","bright","sour","refreshing"]},
+ {id:"spirit",label:"Spirit-forward",tags:["spirit-forward","strong","classic"]},
+ {id:"bitter",label:"Bitter",tags:["bitter","aperitivo","amaro"]},
+ {id:"sweet",label:"Sweet & rich",tags:["sweet","rich","dessert","creamy"]},
+ {id:"herbal",label:"Herbal",tags:["herbal","green","complex"]},
+ {id:"sparkling",label:"Sparkling & light",tags:["sparkling","long","light","refreshing"]}
+];
+
+function tasteDimensionScore(dimension){
+ let score=50;
+ let signals=0;
+ history.forEach(entry=>{
+  const recipe=RECIPE_LIBRARY.find(item=>item.id===entry.recipeId);
+  if(!recipe||!recipe.tags.some(tag=>dimension.tags.includes(tag)))return;
+  signals++;
+  if(entry.rating==="house-favourite")score+=12;
+  else if(entry.rating==="would-repeat")score+=7;
+  else if(entry.rating==="fine")score+=1;
+  else if(entry.rating==="not-for-me")score-=12;
+ });
+ Object.entries(manualPreferences||{}).forEach(([tag,value])=>{
+  if(dimension.tags.includes(tag)){
+   score+=Number(value||0)*4;
+   if(Number(value||0)!==0)signals++;
+  }
+ });
+ return {score:Math.max(0,Math.min(100,Math.round(score))),signals};
+}
+
+function totalTasteSignals(){
+ return history.length+Object.values(manualPreferences||{}).filter(value=>Number(value)!==0).length+favourites.length;
+}
+
+function tasteProfileLabel(){
+ const ranked=PROFILE_TASTE_DIMENSIONS.map(dimension=>({...dimension,...tasteDimensionScore(dimension)}))
+  .sort((a,b)=>b.score-a.score);
+ const top=ranked[0];
+ const second=ranked[1];
+ if(totalTasteSignals()<3)return "Still learning";
+ if(top.score-second.score<7)return `${top.label} with ${second.label.toLowerCase()}`;
+ return `${top.label} leaning`;
+}
+
+function tasteProfileNarrative(){
+ const ranked=PROFILE_TASTE_DIMENSIONS.map(dimension=>({...dimension,...tasteDimensionScore(dimension)}))
+  .sort((a,b)=>b.score-a.score);
+ if(totalTasteSignals()<3)return "Make and rate a few drinks to build a useful profile.";
+ const top=ranked[0];
+ const low=ranked.at(-1);
+ return `Recommendations currently lean toward ${top.label.toLowerCase()} drinks and use ${low.label.toLowerCase()} styles more sparingly.`;
+}
+
+function renderManualTasteControls(){
+ const controls=[
+  {tag:"citrusy",label:"Citrusy"},
+  {tag:"spirit-forward",label:"Spirit-forward"},
+  {tag:"bitter",label:"Bitter"},
+  {tag:"sweet",label:"Sweet"},
+  {tag:"herbal",label:"Herbal"},
+  {tag:"sparkling",label:"Sparkling"}
+ ];
+ manualTasteControls.innerHTML=controls.map(control=>{
+  const value=Number(manualPreferences[control.tag]||0);
+  return `<div class="manual-taste-row">
+   <span>${control.label}</span>
+   <div role="group" aria-label="${control.label} preference">
+    <button type="button" class="${value===-1?"active negative":""}" onclick="setManualTaste('${control.tag}',-1)">Less</button>
+    <button type="button" class="${value===0?"active":""}" onclick="setManualTaste('${control.tag}',0)">Neutral</button>
+    <button type="button" class="${value===1?"active positive":""}" onclick="setManualTaste('${control.tag}',1)">More</button>
+   </div>
+  </div>`;
  }).join("");
- tasteNarrative.textContent=preferenceDescription();
- renderPreferenceSliders();
+}
 
- favouritesList.innerHTML=favourites.length?favourites.map(id=>{const r=RECIPE_LIBRARY.find(x=>x.id===id);return r?`<div class="compact-row"><strong>${escapeHtml(r.name)}</strong><button class="text-btn" onclick="openRecipe('${r.id}')">Open</button></div>`:""}).join(""):`<div class="compact-row">No House Favourites yet.</div>`;
+window.setManualTaste=(tag,value)=>{
+ manualPreferences[tag]=value;
+ save();
+ showToast("Taste preference updated.");
+};
 
- const filter=historyFilter?.value||"all";
- const visible=history.filter(h=>filter==="all"||h.rating===filter).slice(-12).reverse();
- recentRatings.innerHTML=visible.length?visible.map((h,i)=>{const r=RECIPE_LIBRARY.find(x=>x.id===h.recipeId);const cls=h.rating==="house-favourite"?"favourite":h.rating==="not-for-me"?"negative":"";return `<div class="compact-row" onclick="openHistoryDetail('${h.date}')"><div><strong>${escapeHtml(r?.name||"Cocktail")}</strong><small class="history-badge ${cls}">${titleCase(h.rating.replaceAll("-"," "))}</small>${h.notes?`<div class="history-note">${escapeHtml(h.notes)}</div>`:""}</div><small>${new Date(h.date).toLocaleDateString()}</small></div>`}).join(""):`<div class="compact-row">No cocktail history in this category.</div>`;
+function tastePatternInsights(){
+ const insights=[];
+ if(history.length){
+  const recipeCounts={};
+  history.forEach(entry=>{recipeCounts[entry.recipeId]=(recipeCounts[entry.recipeId]||0)+1});
+  const topRecipe=Object.entries(recipeCounts).sort((a,b)=>b[1]-a[1])[0];
+  if(topRecipe){
+   const recipe=RECIPE_LIBRARY.find(item=>item.id===topRecipe[0]);
+   if(recipe)insights.push({
+    title:"Most repeated",
+    detail:`${recipe.name} has been made ${topRecipe[1]} time${topRecipe[1]===1?"":"s"}.`
+   });
+  }
+  const weekdayCount=history.filter(entry=>new Date(entry.date).getDay()===5).length;
+  if(weekdayCount>=2)insights.push({
+   title:"Friday pattern",
+   detail:`${weekdayCount} logged drinks were made on a Friday.`
+  });
+ }
+ const ranked=PROFILE_TASTE_DIMENSIONS.map(dimension=>({...dimension,...tasteDimensionScore(dimension)}))
+  .sort((a,b)=>b.score-a.score);
+ if(totalTasteSignals()>=3)insights.push({
+  title:"Current direction",
+  detail:`${ranked[0].label} is your strongest taste signal.`
+ });
+ const favTags=favourites.flatMap(id=>RECIPE_LIBRARY.find(recipe=>recipe.id===id)?.tags||[]);
+ if(favTags.length){
+  const counts={};
+  favTags.forEach(tag=>counts[tag]=(counts[tag]||0)+1);
+  const topTag=Object.entries(counts).sort((a,b)=>b[1]-a[1])[0];
+  if(topTag)insights.push({
+   title:"Favourite pattern",
+   detail:`Your House Favourites often lean ${titleCase(topTag[0]).toLowerCase()}.`
+  });
+ }
+ if(!insights.length)insights.push({
+  title:"Nothing conclusive yet",
+  detail:"A few ratings and favourites will reveal meaningful patterns."
+ });
+ return insights.slice(0,4);
+}
 
- const next=nextTasteExperiment();
- tasteNextTitle.textContent=next?next.name:"Your current bar is fully explored";
- tasteNextReason.textContent=next?`This gives the app useful new information about your response to ${next.tags.slice(0,2).map(titleCase).join(" and ")} flavours.`:"Add new ingredients or expand the recipe library to continue learning.";
+function renderPersonalizationControls(){
+ if(discoveryLevelSelect){
+  discoveryLevelSelect.value=personalization.discovery;
+  defaultStrengthSelect.value=personalization.defaultStrength;
+ }
+}
+
+discoveryLevelSelect?.addEventListener("change",()=>{
+ personalization.discovery=discoveryLevelSelect.value;
+ localStorage.setItem(PERSONALIZATION_KEY,JSON.stringify(personalization));
+ renderAll();
+ showToast("Discovery preference updated.");
+});
+
+defaultStrengthSelect?.addEventListener("change",()=>{
+ personalization.defaultStrength=defaultStrengthSelect.value;
+ localStorage.setItem(PERSONALIZATION_KEY,JSON.stringify(personalization));
+ renderAll();
+ showToast("Default strength updated.");
+});
+
+function renderTaste(){
+ const dimensions=PROFILE_TASTE_DIMENSIONS.map(dimension=>({...dimension,...tasteDimensionScore(dimension)}))
+  .sort((a,b)=>b.score-a.score);
+ tasteProfileTitle.textContent=tasteProfileLabel();
+ tasteConfidenceBadge.textContent=`${totalTasteSignals()} signal${totalTasteSignals()===1?"":"s"}`;
+ tasteProfileSummary.textContent=tasteProfileNarrative();
+ tasteProfileBars.innerHTML=dimensions.map(dimension=>`
+  <div class="taste-bar-row">
+   <span>${dimension.label}</span>
+   <div><i style="width:${dimension.score}%"></i></div>
+   <strong>${dimension.score}</strong>
+  </div>`).join("");
+
+ renderManualTasteControls();
+
+ tasteInsights.innerHTML=tastePatternInsights().map(insight=>`
+  <article class="taste-insight-card">
+   <span class="line-icon icon-bulb"></span>
+   <div><strong>${escapeHtml(insight.title)}</strong><p>${escapeHtml(insight.detail)}</p></div>
+  </article>`).join("");
+
+ const favouriteItems=favourites
+  .map(id=>RECIPE_LIBRARY.find(recipe=>recipe.id===id))
+  .filter(Boolean);
+ favouriteRecipes.innerHTML=favouriteItems.length
+  ?favouriteItems.map(recipe=>`
+   <button type="button" class="taste-recipe-row" onclick="openRecipe('${recipe.id}')">
+    <span><strong>${escapeHtml(recipe.name)}</strong><small>${recipe.tags.slice(0,3).map(titleCase).join(" · ")}</small></span>
+    <span>›</span>
+   </button>`).join("")
+  :`<p class="helper">Save a recipe as a House Favourite to see it here.</p>`;
+
+ const recent=history.slice().sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,20);
+ tasteHistoryList.innerHTML=recent.length
+  ?recent.map(entry=>{
+   const recipe=RECIPE_LIBRARY.find(item=>item.id===entry.recipeId);
+   if(!recipe)return "";
+   const ratingLabels={
+    "house-favourite":"House Favourite",
+    "would-repeat":"Would repeat",
+    "fine":"Fine",
+    "not-for-me":"Not for me"
+   };
+   return `<article class="taste-history-row">
+    <div class="history-date">
+     <strong>${new Date(entry.date).toLocaleDateString(undefined,{month:"short",day:"numeric"})}</strong>
+     <span>${new Date(entry.date).getFullYear()}</span>
+    </div>
+    <div>
+     <button type="button" onclick="openRecipe('${recipe.id}')">${escapeHtml(recipe.name)}</button>
+     <small>${escapeHtml(ratingLabels[entry.rating]||"Made")}</small>
+     ${entry.notes?`<p>${escapeHtml(entry.notes)}</p>`:""}
+    </div>
+   </article>`;
+  }).join("")
+  :`<p class="helper">Cocktails you mark as Made It will appear here.</p>`;
+
+ renderPersonalizationControls();
 }
 
 const MAX_SCAN_PHOTOS=3;
@@ -588,26 +1661,29 @@ barPhotos.onchange=async e=>{
 function renderPhotos(){
  const count=photos.length;
  photoCountLabel.textContent=count===0
-  ?"Add up to three photos"
-  :`${count} of ${MAX_SCAN_PHOTOS} photo${count===1?"":"s"} ready`;
+  ?"Take your first photo"
+  :count===1
+   ?"One photo ready"
+   :`${count} photos ready`;
  analysePhotos.disabled=count===0;
  analysePhotos.textContent=count===0
-  ?"Analyse photos"
+  ?"Analyse shelf"
   :`Analyse ${count} photo${count===1?"":"s"}`;
  clearPhotos.classList.toggle("hidden",count===0);
- photoStrip.innerHTML=photos.map((p,i)=>`
-  <div class="photo-thumb">
-   <img src="${p.url}" alt="Shelf photo ${i+1}">
-   <span class="photo-number">${i+1}</span>
-   <button type="button" onclick="removePhoto(${i})" aria-label="Remove photo ${i+1}">×</button>
+ scanCameraLabel.textContent=count===0?"Take or add photo":count<MAX_SCAN_PHOTOS?"Add another view":"Photo set complete";
+ barPhotos.disabled=count>=MAX_SCAN_PHOTOS||Boolean(activeScanController);
+ photoStrip.innerHTML=photos.map((photo,index)=>`
+  <div class="photo-thumb scan-photo-card">
+   <img src="${photo.url}" alt="Shelf photo ${index+1}">
+   <span class="photo-number">${index+1}</span>
+   <button type="button" onclick="removePhoto(${index})" aria-label="Remove photo ${index+1}">×</button>
   </div>`).join("");
- if(photoStripHint){
-  photoStripHint.textContent=count===0
-   ?"Add one to three overlapping photos of a single shelf."
-   :count<MAX_SCAN_PHOTOS
-    ?`${MAX_SCAN_PHOTOS-count} photo${MAX_SCAN_PHOTOS-count===1?"":"s"} remaining for this shelf.`
-    :"This shelf is ready to analyse.";
- }
+ photoStripHint.textContent=count===0
+  ?"Use one to three overlapping views. Keep labels facing the camera."
+  :count<MAX_SCAN_PHOTOS
+   ?`${MAX_SCAN_PHOTOS-count} optional view${MAX_SCAN_PHOTOS-count===1?"":"s"} remaining. Analyse now or add another angle.`
+   :"Three views ready. Analyse this shelf before moving to the next one.";
+ setScanStage("photos");
 }
 
 window.removePhoto=i=>{
@@ -619,95 +1695,98 @@ window.removePhoto=i=>{
 
 clearPhotos.onclick=()=>{
  if(activeScanController)return;
- photos.forEach(p=>URL.revokeObjectURL(p.url));
+ photos.forEach(photo=>URL.revokeObjectURL(photo.url));
  photos=[];
  candidates=[];
  renderPhotos();
- clearScanProgress();
- scanStatus.textContent="";
- scanResultsCard.classList.add("hidden");
+ resetScannerView();
 };
 analysePhotos.onclick=async()=>{
  const controller=new AbortController();
  activeScanController=controller;
  const timeoutId=setTimeout(()=>controller.abort("timeout"),45000);
 
+ scanCaptureCard.classList.add("hidden");
+ scanWorkingCard.classList.remove("hidden");
+ scanResultsCard.classList.add("hidden");
+ setScanStage("analyse");
  analysePhotos.disabled=true;
  clearPhotos.disabled=true;
  barPhotos.disabled=true;
- analysePhotos.classList.add("is-loading");
- analysePhotos.setAttribute("aria-busy","true");
- cancelScanBtn.classList.remove("hidden");
- scanResultsCard.classList.add("hidden");
- setScanProgress(5,`Preparing ${photos.length} photo${photos.length===1?"":"s"}…`);
+ setScanProgress(4,`Preparing ${photos.length} photo${photos.length===1?"":"s"}…`);
 
  try{
   const images=[];
-  for(let i=0;i<photos.length;i++){
+  for(let index=0;index<photos.length;index++){
    if(controller.signal.aborted)throw new DOMException("Cancelled","AbortError");
-   setScanProgress(12+Math.round(((i+1)/photos.length)*36),`Preparing photo ${i+1} of ${photos.length}…`);
-   images.push(await resizeImageForScan(photos[i].file,1024,.68));
+   setScanProgress(10+Math.round(((index+1)/photos.length)*38),`Preparing photo ${index+1} of ${photos.length}…`);
+   images.push(await resizeImageForScan(photos[index].file,1024,.68));
   }
 
-  setScanProgress(54,"Uploading securely…");
-  const res=await fetch("/.netlify/functions/analyze-bar",{
+  setScanProgress(55,"Uploading the shelf securely…");
+  const response=await fetch("/.netlify/functions/analyze-bar",{
    method:"POST",
    headers:{"content-type":"application/json"},
    body:JSON.stringify({images}),
    signal:controller.signal
   });
 
-  setScanProgress(82,"Identifying bottles…");
-  const raw=await res.text();
-  if(!res.ok){
+  setScanProgress(82,"Comparing visible labels and merging duplicate views…");
+  const raw=await response.text();
+  if(!response.ok){
    let detail=raw;
-   try{const parsed=JSON.parse(raw);detail=parsed.error||parsed.message||raw}catch{}
-   if(res.status===404)throw new Error("The AI scanning function is not deployed.");
-   if(res.status===503)throw new Error("The OpenAI API key is unavailable.");
-   if(res.status===401)throw new Error("OpenAI rejected the API key.");
-   if(res.status===413)throw new Error("These photos are still too large. Try fewer images.");
-   throw new Error(`Scan failed (${res.status}): ${detail}`);
+   try{
+    const parsed=JSON.parse(raw);
+    detail=parsed.error||parsed.message||raw;
+   }catch{}
+   if(response.status===404)throw new Error("The AI scanning function is not deployed.");
+   if(response.status===503)throw new Error("The OpenAI API key is unavailable.");
+   if(response.status===401)throw new Error("OpenAI rejected the API key.");
+   if(response.status===413)throw new Error("These photos are too large. Try one or two images.");
+   throw new Error(`Scan failed (${response.status}): ${detail}`);
   }
 
   const data=JSON.parse(raw);
-  candidates=(data.items||[]).map(x=>({
-   name:x.name||"",
-   brand:x.brand||"",
-   type:mapType(x.type),
-   status:x.status==="low"?"low":"good",
-   confidence:x.confidence??.5
+  candidates=(data.items||[]).map(item=>({
+   name:item.name||"",
+   brand:item.brand||"",
+   type:mapType(item.type),
+   status:item.status==="low"?"low":"good",
+   confidence:item.confidence??.5
   }));
 
   if(!candidates.length){
-   throw new Error("No bottles were identified. Try brighter, closer photos with labels facing the camera.");
+   throw new Error("No bottles were recognized. Try a brighter, closer photo with labels facing the camera.");
   }
 
-  setScanProgress(100,`Found ${candidates.length} bottle${candidates.length===1?"":"s"}.`);
+  setScanProgress(100,`Recognized ${candidates.length} bottle${candidates.length===1?"":"s"}.`);
   renderCandidates();
+  scanWorkingCard.classList.add("hidden");
   scanResultsCard.classList.remove("hidden");
+  setScanStage("confirm");
   scanResultsCard.scrollIntoView({behavior:"smooth",block:"start"});
-  showToast("Shelf analysed. Confirm the bottles below.");
- }catch(err){
-  console.error(err);
+  showToast("Shelf recognized. Confirm the bottles before saving.");
+ }catch(error){
+  console.error(error);
   candidates=[];
-  if(err?.name==="AbortError"){
-   scanStatus.textContent=controller.signal.reason==="timeout"
-    ?"The scan took too long and was stopped. Try one or two photos."
-    :"Scan cancelled.";
-  }else{
-   scanStatus.textContent=err?.message||"The scan could not be completed.";
-  }
-  showToast(scanStatus.textContent);
+  const message=error?.name==="AbortError"
+   ?controller.signal.reason==="timeout"
+    ?"The scan took too long and was stopped. Try one or two clearer photos."
+    :"Scan cancelled."
+   :error?.message||"The scan could not be completed.";
+  scanStatus.textContent=message;
+  showToast(message);
+  setTimeout(()=>{
+   scanWorkingCard.classList.add("hidden");
+   scanCaptureCard.classList.remove("hidden");
+   setScanStage("photos");
+  },900);
  }finally{
   clearTimeout(timeoutId);
   activeScanController=null;
   analysePhotos.disabled=photos.length===0;
   clearPhotos.disabled=false;
-  barPhotos.disabled=false;
-  analysePhotos.classList.remove("is-loading");
-  analysePhotos.removeAttribute("aria-busy");
-  cancelScanBtn.classList.add("hidden");
-  renderPhotos();
+  barPhotos.disabled=photos.length>=MAX_SCAN_PHOTOS;
   setTimeout(clearScanProgress,900);
  }
 };
@@ -740,16 +1819,73 @@ function resizeImageForScan(file,maxDimension=1024,quality=.68){
  });
 }
 function mapType(t=""){const v=t.toLowerCase();if(v.includes("gin"))return"Gin";if(v.includes("tequila"))return"Tequila";if(v.includes("rum"))return"Rum";if(v.includes("scotch"))return"Scotch";if(v.includes("whisky")||v.includes("rye"))return"Canadian whisky";if(v.includes("vodka"))return"Vodka";if(v.includes("vermouth"))return"Vermouth/Fortified wine";if(v.includes("bitter"))return"Bitters";if(v.includes("amaro")||v.includes("aperitivo"))return"Amaro/Aperitivo";if(v.includes("liqueur"))return"Liqueur";return"Other"}
-function renderCandidates(){scanResultCount.textContent=candidates.length;scanCandidates.innerHTML=candidates.map((x,i)=>`<div class="candidate-row"><input value="${escapeHtml(x.name)}" oninput="updateCandidate(${i},'name',this.value)" placeholder="Product"><input value="${escapeHtml(x.brand)}" oninput="updateCandidate(${i},'brand',this.value)" placeholder="Brand"><select onchange="updateCandidate(${i},'type',this.value)">${["Gin","Tequila","Rum","Canadian whisky","Scotch","Irish whiskey","Brandy/Cognac","Vodka","Liqueur","Amaro/Aperitivo","Vermouth/Fortified wine","Bitters","Mixer","Fresh ingredient","Other"].map(t=>`<option ${t===x.type?"selected":""}>${t}</option>`).join("")}</select><button class="text-btn" onclick="removeCandidate(${i})">Remove</button></div>`).join("")}
+function renderCandidates(){
+ scanResultCount.textContent=candidates.length;
+ const average=candidates.length
+  ?Math.round(candidates.reduce((sum,item)=>sum+Number(item.confidence||0),0)/candidates.length*100)
+  :0;
+ const uncertain=candidates.filter(item=>Number(item.confidence||0)<.72).length;
+ scanConfidenceSummary.textContent=uncertain
+  ?`${uncertain} need${uncertain===1?"s":""} review`
+  :`${average}% average confidence`;
+ scanConfidenceSummary.classList.toggle("good",uncertain===0);
+
+ scanCandidates.innerHTML=candidates.map((item,index)=>{
+  const confidence=Math.round(Number(item.confidence||0)*100);
+  const level=confidence>=85?"high":confidence>=65?"medium":"low";
+  return `<article class="scan-candidate-card ${level}">
+   <div class="candidate-confidence">
+    <strong>${confidence}%</strong>
+    <span>${level==="high"?"High confidence":level==="medium"?"Please check":"Needs review"}</span>
+   </div>
+   <label>
+    <span>Bottle</span>
+    <input value="${escapeHtml(item.name)}" oninput="updateCandidate(${index},'name',this.value)" placeholder="Product name">
+   </label>
+   <label>
+    <span>Brand</span>
+    <input value="${escapeHtml(item.brand)}" oninput="updateCandidate(${index},'brand',this.value)" placeholder="Brand, if visible">
+   </label>
+   <label>
+    <span>Type</span>
+    <select onchange="updateCandidate(${index},'type',this.value)">
+     ${["Gin","Tequila","Rum","Canadian whisky","Scotch","Irish whiskey","Brandy/Cognac","Vodka","Liqueur","Amaro/Aperitivo","Vermouth/Fortified wine","Bitters","Mixer","Fresh ingredient","Other"].map(type=>`<option ${type===item.type?"selected":""}>${type}</option>`).join("")}
+    </select>
+   </label>
+   <button class="candidate-remove" type="button" onclick="removeCandidate(${index})">Remove bottle</button>
+  </article>`;
+ }).join("");
+}
 window.updateCandidate=(i,k,v)=>candidates[i][k]=v;window.removeCandidate=i=>{candidates.splice(i,1);renderCandidates()};
 addCandidateRow.onclick=()=>{candidates.push({name:"",brand:"",type:"Other",status:"good",confidence:1});renderCandidates()};
-saveScanResults.onclick=()=>{const existing=inventory.map(x=>`${x.brand} ${x.name}`.toLowerCase());candidates.filter(x=>x.name.trim()).forEach(x=>{const key=`${x.brand} ${x.name}`.toLowerCase();if(!existing.some(e=>similar(e,key)))inventory.push({id:crypto.randomUUID(),name:x.name.trim(),brand:x.brand.trim(),type:x.type,status:x.status,notes:`AI scan confidence: ${Math.round((x.confidence||0)*100)}%`})});save();showView("inventoryView");scanResultsCard.classList.add("hidden");
- photos.forEach(p=>URL.revokeObjectURL(p.url));
+saveScanResults.onclick=()=>{
+ const existing=inventory.map(item=>`${item.brand} ${item.name}`.toLowerCase());
+ let added=0;
+ candidates.filter(item=>item.name.trim()).forEach(item=>{
+  const key=`${item.brand} ${item.name}`.toLowerCase();
+  if(!existing.some(entry=>similar(entry,key))){
+   inventory.push({
+    id:crypto.randomUUID(),
+    name:item.name.trim(),
+    brand:item.brand.trim(),
+    type:item.type,
+    status:item.status,
+    notes:`AI scan confidence: ${Math.round((item.confidence||0)*100)}%`
+   });
+   existing.push(key);
+   added++;
+  }
+ });
+ save();
+ photos.forEach(photo=>URL.revokeObjectURL(photo.url));
  photos=[];
  candidates=[];
  renderPhotos();
- scanStatus.textContent="Shelf added. Scan another shelf whenever you’re ready.";
- showToast("Shelf added to My Bar.");
+ resetScannerView();
+ gentleFeedback([12,45,18]);
+ if(added>=3)celebrateMoment(`${added} bottles added`);
+ showToast(`${added} bottle${added===1?"":"s"} added to My Bar.`);
+ showView("inventoryView");
 };
 function similar(a,b){const clean=s=>new Set(s.replace(/[^a-z0-9 ]/g,"").split(/\s+/).filter(w=>w.length>2));const A=clean(a),B=clean(b);const overlap=[...A].filter(x=>B.has(x)).length;return overlap>=Math.min(2,A.size,B.size)}
 
@@ -785,7 +1921,8 @@ window.markUnlockOwned=(key,gain)=>{
    notes:"Added from Bar IQ"
   });
   save();
-  showToast(`${name} added to My Bar.`);
+  gentleFeedback([10,35,14]);
+ showToast(`${name} added to My Bar.`);
  }else{
   showToast(`${name} is already in My Bar.`);
  }
@@ -794,7 +1931,7 @@ window.markUnlockOwned=(key,gain)=>{
 window.addUnlockToShopping=(key,gain)=>{
  const name=titleCase(key);
  if(!wishlist.some(item=>item.name.toLowerCase()===name.toLowerCase())){
-  wishlist.push({name,reason:`High-value addition · unlocks ${gain} cocktails`});
+  wishlist.push({name,reason:`High-value addition · unlocks ${gain} cocktails`,completed:false});
   save();
  }
  showToast(`${name} added to the shopping list.`);
@@ -858,12 +1995,26 @@ function guessInventoryType(key){
  return "Liqueur";
 }
 
-function renderAll(){renderDashboard();renderInventory();renderShopping();renderBarIQ();renderRecommendationControls();renderTaste();renderStaplesMenu()}
 
-const APP_VERSION="3.2.0-dev";
+clearTasteHistory.onclick=()=>{
+ if(!history.length){
+  showToast("There is no cocktail history to clear.");
+  return;
+ }
+ if(confirm("Clear your cocktail history? Favourites and manual taste preferences will remain.")){
+  history=[];
+  detailedFeedback=[];
+  save();
+  showToast("Cocktail history cleared.");
+ }
+};
+
+function renderAll(){renderDashboard();renderInventory();renderShopping();renderBarIQ();renderRecommendationControls();renderTaste();renderStaplesMenu();renderMeasurementControls();renderPersonalizationControls();renderExperienceControls();renderMilestone()}
+
+const APP_VERSION="3.3.10-dev";
 const APP_STORAGE_KEYS=[
  STORAGE_KEY,WISHLIST_KEY,TASTE_KEY,HISTORY_KEY,FAV_KEY,MANUAL_PREF_KEY,FEEDBACK_KEY,
- "ttt_phase2_mood","ttt_phase2_occasion","ttt_phase2_strength",STAPLES_KEY,"ttt_theme"
+ "ttt_phase2_mood","ttt_phase2_occasion","ttt_phase2_strength",STAPLES_KEY,MEASUREMENT_KEY,SHOPPING_IGNORE_KEY,PERSONALIZATION_KEY,EXPERIENCE_KEY,ONBOARDING_KEY,"ttt_theme"
 ];
 
 const menuBtn=document.getElementById("menuBtn");
@@ -933,4 +2084,4 @@ resetAppDataBtn.addEventListener("click",()=>{
 });
 
 if("serviceWorker"in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js"));
-renderPhotos();renderAll();getRecommendations();
+renderPhotos();renderAll();getRecommendations();maybeShowOnboarding();

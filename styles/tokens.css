@@ -1,0 +1,54 @@
+:root,
+:root[data-theme="atlantic"]{
+  --colour-bg:#f3f5f4;
+  --colour-surface:#ffffff;
+  --colour-surface-subtle:#eef3f1;
+  --colour-text:#17201f;
+  --colour-muted:#66716f;
+  --colour-line:#dfe6e3;
+  --colour-primary:#0f6669;
+  --colour-primary-soft:#dceeed;
+  --colour-accent:#ae7b44;
+  --colour-success:#547b5c;
+  --colour-warning:#a66f20;
+  --colour-danger:#a8434a;
+  --colour-on-primary:#ffffff;
+  --shadow-card:0 8px 24px rgba(18,40,38,.065);
+  --shadow-float:0 18px 42px rgba(18,40,38,.14);
+}
+:root[data-theme="modern"]{
+  --colour-bg:#f4f5f6; --colour-surface:#ffffff; --colour-surface-subtle:#eef0f2;
+  --colour-text:#181b20; --colour-muted:#707780; --colour-line:#e4e7ea;
+  --colour-primary:#2757b7; --colour-primary-soft:#e6ecfa; --colour-accent:#167d5d;
+  --colour-success:#3d7a59; --colour-warning:#99681f; --colour-danger:#a63e4a;
+  --colour-on-primary:#ffffff; --shadow-card:0 8px 24px rgba(31,37,44,.065);
+  --shadow-float:0 18px 42px rgba(31,37,44,.14);
+}
+:root[data-theme="cellar"]{
+  --colour-bg:#f4efe7; --colour-surface:#fffdf8; --colour-surface-subtle:#eee4d7;
+  --colour-text:#34291f; --colour-muted:#776a5f; --colour-line:#e5d9c9;
+  --colour-primary:#82442f; --colour-primary-soft:#f0dfd3; --colour-accent:#a67a35;
+  --colour-success:#60764d; --colour-warning:#9c681c; --colour-danger:#a24545;
+  --colour-on-primary:#ffffff; --shadow-card:0 8px 24px rgba(73,47,31,.075);
+  --shadow-float:0 18px 42px rgba(73,47,31,.15);
+}
+:root[data-theme="midnight"]{
+  --colour-bg:#101419; --colour-surface:#1a2026; --colour-surface-subtle:#222a32;
+  --colour-text:#f4f6f7; --colour-muted:#a3abb4; --colour-line:#2c353e;
+  --colour-primary:#7da7ff; --colour-primary-soft:#263b61; --colour-accent:#d09b50;
+  --colour-success:#70a67c; --colour-warning:#d09b50; --colour-danger:#e07b83;
+  --colour-on-primary:#0c1522; --shadow-card:0 8px 24px rgba(0,0,0,.24);
+  --shadow-float:0 18px 42px rgba(0,0,0,.34);
+}
+:root{
+  --font-ui:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Arial,sans-serif;
+  --font-display:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  --text-xs:.68rem; --text-sm:.78rem; --text-base:.94rem; --text-lg:1.12rem;
+  --text-xl:1.35rem; --text-2xl:1.78rem; --text-3xl:2.35rem;
+  --weight-regular:400; --weight-medium:500; --weight-semibold:600; --weight-bold:700;
+  --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px;
+  --space-5:20px; --space-6:24px; --space-8:32px; --space-12:48px;
+  --radius-sm:12px; --radius-md:16px; --radius-lg:22px; --radius-xl:28px;
+  --motion-fast:140ms; --motion-normal:220ms;
+  --ease-standard:cubic-bezier(.2,.8,.2,1);
+}

@@ -1,0 +1,22 @@
+.topbar{
+  background:color-mix(in srgb,var(--colour-bg) 92%,transparent)!important;
+  border-bottom:1px solid color-mix(in srgb,var(--colour-line) 70%,transparent)!important;
+  backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+}
+.menu-button{background:var(--colour-surface)!important;border:1px solid var(--colour-line)!important}
+.menu-button span{background:var(--colour-text)!important}
+.bottom-nav{
+  background:color-mix(in srgb,var(--colour-surface) 94%,transparent)!important;
+  border:1px solid var(--colour-line)!important;box-shadow:var(--shadow-float)!important;
+  backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+}
+.bottom-nav button{color:var(--colour-muted)!important}
+.bottom-nav button.active{color:var(--colour-primary)!important;background:var(--colour-primary-soft)!important}
+.app-menu{background:var(--colour-surface)!important;color:var(--colour-text)!important}
+.app-menu-links button,.menu-link-stack button,.theme-choice{
+  background:var(--colour-surface-subtle)!important;color:var(--colour-text)!important;
+  border:1px solid var(--colour-line)!important;
+}
+.menu-submenu{border-color:var(--colour-line)!important}
+.menu-submenu summary,.app-menu-header h2,.app-menu-footer strong{color:var(--colour-text)!important}
+.menu-close{background:var(--colour-surface-subtle)!important;color:var(--colour-text)!important}

@@ -1,16 +1,21 @@
-# Phase 2 Scope
+# Phase 2 — Intelligent Home
 
-## Goal
-Help the user choose the right drink for the moment from cocktails they can actually make and teach the recommendation engine their palate over time.
+## Version
+3.3.10-dev
 
-## Core workflows
-1. Select mood, occasion and desired strength.
-2. Receive three curated recommendations.
-3. Turn the Tide for a deliberately different direction.
-4. Review ingredients and identify anything missing.
-5. Record what was made.
-6. Rate the experience.
-7. Improve future recommendations from those ratings.
+## Objective
+Make Home immediately useful by presenting one recommendation, one purchase and one insight.
 
-## Recipe library
-This build contains 140 curated cocktails and Atlantic-themed house variations. The long-term target remains approximately 300 carefully classified recipes.
+## Included
+- A personalized tonight recommendation selected from the current inventory and taste profile
+- A short explanation of why the drink fits
+- Ready-now or one-ingredient-away status
+- Make This and Another Idea actions
+- A single high-value bottle recommendation
+- Direct shopping-list action from Home
+- Graceful empty-inventory state
+
+## Not included
+- Full recipe-screen redesign
+- New external weather service
+- New cloud accounts or cross-device history
